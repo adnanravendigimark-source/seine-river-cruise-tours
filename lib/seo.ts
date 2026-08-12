@@ -1,5 +1,19 @@
 import { SITE_URL } from "./site";
 
+// Rich-text fields (hero subheading, section intros, etc.) are stored as
+// HTML from RichTextEditor.tsx — safe to render on the page itself via
+// dangerouslySetInnerHTML, but raw tags must never leak into a <meta>
+// tag, OG description, JSON-LD string, or anywhere else that expects
+// plain text. Use this to get a plain-text version of any rich-text
+// field before it's used in one of those contexts.
+export function stripHtml(html: string): string {
+  return html
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 // The single place that turns a page's "Search Engine Indexing" +
 // "Link Following" toggles into the `robots` metadata value Next.js
 // renders as <meta name="robots">.

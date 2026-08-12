@@ -92,6 +92,21 @@ body {
   font-weight: 600;
 }
 
+/* Used wherever rich-content is rendered on a dark background (e.g. the
+   Hero subheading, over the ink hero photo) — the base .rich-content
+   rules above hardcode a dark heading/link color for use on light
+   backgrounds, which would make an H1/H2/H3 or link invisible on a dark
+   one. This makes headings/links/bold text inherit the surrounding
+   (light) text color instead. */
+.rich-content-invert,
+.rich-content-invert h1,
+.rich-content-invert h2,
+.rich-content-invert h3,
+.rich-content-invert a,
+.rich-content-invert strong {
+  color: inherit;
+}
+
 /* Placeholder text for the empty contentEditable in RichTextEditor.tsx. */
 [data-rte-empty="true"]:before {
   content: attr(data-placeholder);

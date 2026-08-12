@@ -12,7 +12,7 @@ import FAQSection from "@/components/FAQSection";
 import Footer from "@/components/Footer";
 import { getTours } from "@/lib/data";
 import { getHomepageContent } from "@/lib/homepage";
-import { resolveRobots, resolveCanonical, resolveOg } from "@/lib/seo";
+import { resolveRobots, resolveCanonical, resolveOg, stripHtml } from "@/lib/seo";
 
 // Content (hero copy, tours, FAQs) lives in /data and is editable from
 // /admin — render dynamically so edits show up without a rebuild.
@@ -26,7 +26,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const homepage = await getHomepageContent();
   const og = resolveOg(
     { ogTitle: homepage.ogTitle, ogDescription: homepage.ogDescription, ogImage: homepage.ogImage },
-    { title: homepage.heroHeading, description: homepage.heroSubheading, image: homepage.heroImage }
+    { title: homepage.heroHeading, description: stripHtml(homepage.heroSubheading), image: homepage.heroImage }
   );
   return {
     // Left unset when blank so the page inherits the root layout's

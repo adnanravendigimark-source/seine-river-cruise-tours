@@ -92,7 +92,7 @@ export default function AboutForm({ initial }: { initial: AboutPageContent }) {
           <label className={labelClass}>Subheading</label>
           <textarea rows={3} value={about.heroSubheading} onChange={(e) => update("heroSubheading", e.target.value)} className={inputClass} />
         </div>
-        <ImageUploadField label="Hero background photo" value={about.heroImage} onChange={(url) => update("heroImage", url)} />
+        <ImageUploadField label="Hero background photo" value={about.heroImage} onChange={(url) => update("heroImage", url)} aspectRatio={16 / 9} />
         <div>
           <label className={labelClass}>Hero photo alt text</label>
           <input value={about.heroImageAlt} onChange={(e) => update("heroImageAlt", e.target.value)} className={inputClass} />
@@ -112,7 +112,7 @@ export default function AboutForm({ initial }: { initial: AboutPageContent }) {
           <label className={labelClass}>Second paragraph</label>
           <textarea rows={4} value={about.introParagraph2} onChange={(e) => update("introParagraph2", e.target.value)} className={inputClass} />
         </div>
-        <ImageUploadField label="Section photo" value={about.introImage} onChange={(url) => update("introImage", url)} />
+        <ImageUploadField label="Section photo" value={about.introImage} onChange={(url) => update("introImage", url)} aspectRatio={4 / 3} />
         <div>
           <label className={labelClass}>Section photo alt text</label>
           <input value={about.introImageAlt} onChange={(e) => update("introImageAlt", e.target.value)} className={inputClass} />

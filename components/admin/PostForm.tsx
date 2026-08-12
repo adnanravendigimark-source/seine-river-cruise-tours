@@ -196,7 +196,7 @@ export default function PostForm({
           </div>
         </div>
 
-        <ImageUploadField label="Hero image" value={post.image} onChange={(url) => update("image", url)} />
+        <ImageUploadField label="Hero image" value={post.image} onChange={(url) => update("image", url)} aspectRatio={21 / 9} />
         <div>
           <label className={labelClass}>Image alt text</label>
           <input

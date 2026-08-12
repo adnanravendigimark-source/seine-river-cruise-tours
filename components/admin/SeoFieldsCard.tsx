@@ -137,6 +137,7 @@ export default function SeoFieldsCard({
               label="Social Share Image (optional)"
               value={value.ogImage}
               onChange={(url) => onChange({ ogImage: url })}
+              aspectRatio={1.91 / 1}
             />
           </div>
         </div>

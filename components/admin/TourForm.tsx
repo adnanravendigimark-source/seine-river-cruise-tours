@@ -189,7 +189,7 @@ export default function TourForm({
         </div>
       </div>
 
-      <ImageUploadField label="Image" value={tour.image} onChange={(url) => update("image", url)} />
+      <ImageUploadField label="Image" value={tour.image} onChange={(url) => update("image", url)} aspectRatio={4 / 3} />
 
       <div>
         <label className={labelClass}>Image alt text</label>

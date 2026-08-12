@@ -518,7 +518,7 @@ export default function HomepageForm({ initial }: { initial: HomepageContent }) 
             <Field label="Social description (optional)">
               <textarea rows={2} value={content.ogDescription} onChange={(e) => update("ogDescription", e.target.value)} className={inputClass} />
             </Field>
-            <ImageUploadField label="Social share image (optional)" value={content.ogImage} onChange={(url) => update("ogImage", url)} />
+            <ImageUploadField label="Social share image (optional)" value={content.ogImage} onChange={(url) => update("ogImage", url)} aspectRatio={1.91 / 1} />
 
             <div className="overflow-hidden rounded-xl border border-stone-200">
               <div className="aspect-[1.91/1] w-full bg-stone-100">
@@ -548,7 +548,7 @@ export default function HomepageForm({ initial }: { initial: HomepageContent }) 
           </SectionCard>
 
           <SectionCard title="Hero photo">
-            <ImageUploadField label="Hero background photo" value={content.heroImage} onChange={(url) => update("heroImage", url)} />
+            <ImageUploadField label="Hero background photo" value={content.heroImage} onChange={(url) => update("heroImage", url)} aspectRatio={16 / 9} />
             <Field label="Hero photo alt text">
               <input value={content.heroImageAlt} onChange={(e) => update("heroImageAlt", e.target.value)} className={inputClass} />
             </Field>
@@ -562,7 +562,7 @@ export default function HomepageForm({ initial }: { initial: HomepageContent }) 
               addLabel="+ Add photo"
               renderItem={(img, upd) => (
                 <div className="space-y-2">
-                  <ImageUploadField label="Photo" value={img.src} onChange={(url) => upd({ ...img, src: url })} />
+                  <ImageUploadField label="Photo" value={img.src} onChange={(url) => upd({ ...img, src: url })} aspectRatio={1} />
                   <div className="grid gap-2 sm:grid-cols-2">
                     <input value={img.label} onChange={(e) => upd({ ...img, label: e.target.value })} placeholder="Caption shown on the photo" className={inputClass} />
                     <input value={img.alt} onChange={(e) => upd({ ...img, alt: e.target.value })} placeholder="Alt text" className={inputClass} />
@@ -580,7 +580,7 @@ export default function HomepageForm({ initial }: { initial: HomepageContent }) 
               addLabel="+ Add photo"
               renderItem={(img, upd) => (
                 <div className="space-y-2">
-                  <ImageUploadField label="Photo" value={img.src} onChange={(url) => upd({ ...img, src: url })} />
+                  <ImageUploadField label="Photo" value={img.src} onChange={(url) => upd({ ...img, src: url })} aspectRatio={1} />
                   <div className="grid gap-2 sm:grid-cols-2">
                     <input value={img.label} onChange={(e) => upd({ ...img, label: e.target.value })} placeholder="Caption shown on the photo" className={inputClass} />
                     <input value={img.alt} onChange={(e) => upd({ ...img, alt: e.target.value })} placeholder="Alt text" className={inputClass} />
