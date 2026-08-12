@@ -127,6 +127,18 @@ export async function getAboutPage(): Promise<AboutPageContent> {
   }
 }
 
+// Touches ONLY the indexing columns — used by the centralized "Indexing"
+// admin tab (/admin/indexing).
+export async function setAboutIndexing(noIndex: boolean, noFollow: boolean): Promise<void> {
+  await sql`
+    INSERT INTO about_page (id, no_index, no_follow)
+    VALUES (1, ${!!noIndex}, ${!!noFollow})
+    ON CONFLICT (id) DO UPDATE SET
+      no_index = EXCLUDED.no_index,
+      no_follow = EXCLUDED.no_follow
+  `;
+}
+
 export async function saveAboutPage(data: AboutPageContent): Promise<void> {
   await sql`
     INSERT INTO about_page (

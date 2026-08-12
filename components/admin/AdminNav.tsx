@@ -14,6 +14,7 @@ import {
   GlobeIcon,
   InfoIcon,
   MailIcon,
+  SearchIcon,
   UsersIcon,
 } from "./icons";
 
@@ -30,11 +31,15 @@ const baseNavItems: { href: string; label: string; icon: typeof GridIcon; pageKe
   { href: "/admin/pages", label: "Blog Page SEO", icon: GlobeIcon, pageKey: "pages" },
 ];
 
+// Admin-only nav items — appended after the per-section items, not gated
+// by any PAGE_KEY an editor could be granted (Indexing spans every
+// section at once; Users manages login credentials).
+const indexingNavItem = { href: "/admin/indexing", label: "Indexing", icon: SearchIcon };
 const usersNavItem = { href: "/admin/users", label: "Users", icon: UsersIcon };
 
 function visibleNavItems(isAdmin: boolean, pages: PageKey[]) {
   const items = baseNavItems.filter((item) => !item.pageKey || isAdmin || pages.includes(item.pageKey));
-  return isAdmin ? [...items, usersNavItem] : items;
+  return isAdmin ? [...items, indexingNavItem, usersNavItem] : items;
 }
 
 function isActive(pathname: string, href: string) {

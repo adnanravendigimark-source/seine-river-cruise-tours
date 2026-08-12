@@ -86,7 +86,12 @@ export async function middleware(req: NextRequest) {
   }
 
   const isUsersArea = pathname.startsWith("/admin/users") || pathname.startsWith("/api/admin/users");
-  if (isUsersArea && session.role !== "admin") {
+  // The Indexing tab changes Index/Follow across every content section at
+  // once (homepage, every post, privacy, about, contact) — restricted to
+  // admins only, same as Users, rather than gated by a per-section
+  // PAGE_KEY an editor could be individually granted.
+  const isIndexingArea = pathname.startsWith("/admin/indexing") || pathname.startsWith("/api/admin/indexing");
+  if ((isUsersArea || isIndexingArea) && session.role !== "admin") {
     if (isAdminApi) {
       return withNoCache(withNoIndex(NextResponse.json({ error: "Admins only." }, { status: 403 })));
     }

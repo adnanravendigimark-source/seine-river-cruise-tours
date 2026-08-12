@@ -4,7 +4,7 @@ import { getPosts } from "@/lib/posts";
 import { getHomepageContent } from "@/lib/homepage";
 import { getSession } from "@/lib/session";
 import type { PageKey } from "@/lib/pageAccess";
-import { HomeIcon, StarBadgeIcon, TicketStackIcon, DocumentIcon, QuestionIcon, ShieldIcon, GlobeIcon, InfoIcon, MailIcon } from "@/components/admin/icons";
+import { HomeIcon, StarBadgeIcon, TicketStackIcon, DocumentIcon, QuestionIcon, ShieldIcon, GlobeIcon, InfoIcon, MailIcon, SearchIcon } from "@/components/admin/icons";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +19,16 @@ const cards: { href: string; label: string; desc: string; icon: typeof HomeIcon;
   { href: "/admin/contact", label: "Contact Page", desc: "Every section of /contact, plus its SEO.", icon: MailIcon, pageKey: "contact" },
   { href: "/admin/pages", label: "Blog Page SEO", desc: "SEO fields for the /blog listing page.", icon: GlobeIcon, pageKey: "pages" },
 ];
+
+// Admin-only card, shown separately below — not gated by a PAGE_KEY since
+// Indexing spans every content section at once (see middleware.ts's
+// isIndexingArea check).
+const indexingCard = {
+  href: "/admin/indexing",
+  label: "Indexing",
+  desc: "Search Engine Indexing & Link Following for every page, in one place.",
+  icon: SearchIcon,
+};
 
 export default async function AdminDashboardPage() {
   const tours = await getToursRaw();
@@ -84,6 +94,26 @@ export default async function AdminDashboardPage() {
           </p>
         )}
       </div>
+
+      {isAdmin && (
+        <>
+          <p className="mt-10 text-xs font-semibold uppercase tracking-widest text-stone-400">Admin only</p>
+          <div className="mt-3 grid gap-4 sm:grid-cols-2">
+            <Link
+              href={indexingCard.href}
+              className="group flex items-start gap-4 rounded-2xl border border-stone-200 bg-white p-5 transition hover:border-seine-amber/40 hover:shadow-sm"
+            >
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-stone-100 text-stone-500 transition group-hover:bg-seine-amber/10 group-hover:text-seine-amber">
+                <indexingCard.icon className="h-5 w-5" />
+              </span>
+              <span>
+                <span className="block font-semibold text-stone-900">{indexingCard.label}</span>
+                <span className="mt-0.5 block text-sm text-stone-500">{indexingCard.desc}</span>
+              </span>
+            </Link>
+          </div>
+        </>
+      )}
     </div>
   );
 }

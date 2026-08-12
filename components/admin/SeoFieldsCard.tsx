@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import ImageUploadField from "./ImageUploadField";
 
 // Everything one page needs for full on-page + technical SEO control,
@@ -22,44 +23,6 @@ export interface SeoFieldsValue {
 const inputClass =
   "w-full rounded-lg border border-stone-300 px-3 py-2 text-sm focus:border-seine-teal focus:outline-none focus:ring-1 focus:ring-seine-teal";
 const labelClass = "mb-1 block text-sm font-medium text-stone-700";
-
-function ToggleSwitch({
-  label,
-  enabled,
-  onToggle,
-  onLabel,
-  offLabel,
-}: {
-  label: string;
-  enabled: boolean;
-  onToggle: (next: boolean) => void;
-  onLabel: string;
-  offLabel: string;
-}) {
-  return (
-    <div className="flex items-center justify-between gap-4 rounded-xl border border-stone-200 bg-stone-50 p-4">
-      <div>
-        <p className="text-sm font-semibold text-stone-900">{label}</p>
-        <p className="mt-0.5 text-xs text-stone-500">{enabled ? onLabel : offLabel}</p>
-      </div>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={enabled}
-        onClick={() => onToggle(!enabled)}
-        className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition ${
-          enabled ? "bg-green-500" : "bg-stone-300"
-        }`}
-      >
-        <span
-          className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition ${
-            enabled ? "translate-x-6" : "translate-x-1"
-          }`}
-        />
-      </button>
-    </div>
-  );
-}
 
 export default function SeoFieldsCard({
   value,
@@ -123,21 +86,27 @@ export default function SeoFieldsCard({
           />
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2">
-          <ToggleSwitch
-            label="Search Engine Indexing"
-            enabled={!value.noIndex}
-            onToggle={(next) => onChange({ noIndex: !next })}
-            onLabel="ON — search engines can index this page"
-            offLabel="OFF — noindex (hidden from search results)"
-          />
-          <ToggleSwitch
-            label="Link Following"
-            enabled={!value.noFollow}
-            onToggle={(next) => onChange({ noFollow: !next })}
-            onLabel="ON — links on this page pass authority (follow)"
-            offLabel="OFF — nofollow (links on this page are not followed)"
-          />
+        <div className="flex items-center justify-between gap-4 rounded-xl border border-stone-200 bg-stone-50 p-4">
+          <div>
+            <p className="text-sm font-semibold text-stone-900">Search Engine Indexing &amp; Link Following</p>
+            <p className="mt-0.5 text-xs text-stone-500">
+              Currently{" "}
+              <span className={value.noIndex ? "font-medium text-amber-700" : "font-medium text-green-700"}>
+                {value.noIndex ? "noindex" : "index"}
+              </span>
+              {", "}
+              <span className={value.noFollow ? "font-medium text-amber-700" : "font-medium text-green-700"}>
+                {value.noFollow ? "nofollow" : "follow"}
+              </span>
+              . Managed from one place for every page.
+            </p>
+          </div>
+          <Link
+            href="/admin/indexing"
+            className="shrink-0 rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-xs font-medium text-stone-700 transition hover:bg-stone-50"
+          >
+            Manage in Indexing →
+          </Link>
         </div>
 
         <div className="border-t border-stone-200 pt-5">

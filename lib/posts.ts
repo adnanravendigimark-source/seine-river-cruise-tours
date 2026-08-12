@@ -122,6 +122,14 @@ export async function getPost(slug: string): Promise<Post | undefined> {
   }
 }
 
+// Touches ONLY the indexing columns for one post — used by the
+// centralized "Indexing" admin tab (/admin/indexing) so flipping a post's
+// Index/Follow toggle there can never clobber the rest of that post's
+// content, no matter which was saved most recently.
+export async function setPostIndexing(slug: string, noIndex: boolean, noFollow: boolean): Promise<void> {
+  await sql`UPDATE posts SET no_index = ${!!noIndex}, no_follow = ${!!noFollow} WHERE slug = ${slug}`;
+}
+
 export async function getRelatedPosts(slug: string, count = 2): Promise<Post[]> {
   const posts = await getPosts();
   return posts.filter((p) => p.slug !== slug).slice(0, count);

@@ -19,6 +19,15 @@ export function MailIcon({ className = "h-5 w-5" }: IconProps) {
   );
 }
 
+export function SearchIcon({ className = "h-5 w-5" }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth={1.7}>
+      <circle cx="10.5" cy="10.5" r="6.5" />
+      <path d="M19.5 19.5 15.2 15.2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export function GridIcon({ className = "h-5 w-5" }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth={1.7}>

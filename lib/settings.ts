@@ -48,6 +48,18 @@ export async function getBlogSeoSettings(): Promise<BlogSeoSettings> {
   }
 }
 
+// Touches ONLY the indexing columns — used by the centralized "Indexing"
+// admin tab (/admin/indexing).
+export async function setBlogIndexing(noIndex: boolean, noFollow: boolean): Promise<void> {
+  await sql`
+    INSERT INTO site_settings (id, blog_no_index, blog_no_follow)
+    VALUES (1, ${!!noIndex}, ${!!noFollow})
+    ON CONFLICT (id) DO UPDATE SET
+      blog_no_index = EXCLUDED.blog_no_index,
+      blog_no_follow = EXCLUDED.blog_no_follow
+  `;
+}
+
 export async function saveBlogSeoSettings(data: BlogSeoSettings): Promise<void> {
   await sql`
     INSERT INTO site_settings (

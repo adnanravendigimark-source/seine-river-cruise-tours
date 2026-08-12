@@ -73,6 +73,18 @@ export async function getPrivacyPolicy(): Promise<PrivacyPolicy> {
   }
 }
 
+// Touches ONLY the indexing columns — used by the centralized "Indexing"
+// admin tab (/admin/indexing).
+export async function setPrivacyIndexing(noIndex: boolean, noFollow: boolean): Promise<void> {
+  await sql`
+    INSERT INTO privacy_policy (id, no_index, no_follow)
+    VALUES (1, ${!!noIndex}, ${!!noFollow})
+    ON CONFLICT (id) DO UPDATE SET
+      no_index = EXCLUDED.no_index,
+      no_follow = EXCLUDED.no_follow
+  `;
+}
+
 export async function savePrivacyPolicy(data: {
   title: string;
   content: ContentBlock[];

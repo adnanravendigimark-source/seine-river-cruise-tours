@@ -106,6 +106,20 @@ export async function getHomepageContent(): Promise<HomepageContent> {
   }
 }
 
+// Touches ONLY the indexing columns — used by the centralized "Indexing"
+// admin tab (/admin/indexing) so flipping this page's Index/Follow toggle
+// there can never clobber the rest of the Homepage form's fields no matter
+// which was saved most recently.
+export async function setHomepageIndexing(noIndex: boolean, noFollow: boolean): Promise<void> {
+  await sql`
+    INSERT INTO homepage (id, no_index, no_follow)
+    VALUES (1, ${!!noIndex}, ${!!noFollow})
+    ON CONFLICT (id) DO UPDATE SET
+      no_index = EXCLUDED.no_index,
+      no_follow = EXCLUDED.no_follow
+  `;
+}
+
 export async function saveHomepageContent(data: HomepageContent): Promise<void> {
   await sql`
     INSERT INTO homepage (
