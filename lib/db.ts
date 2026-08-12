@@ -25,3 +25,21 @@ export const sql = neon(process.env.DATABASE_URL || "postgres://unset");
 // missing/wrong, or the Neon project is paused/unreachable.
 export const DB_ERROR_MESSAGE =
   "Couldn't save — the database couldn't be reached. Check that DATABASE_URL is set correctly (and that your Neon project is active), then try again.";
+
+// Same idea as DB_ERROR_MESSAGE, but for the specific case where the
+// database IS reachable and rejects the query because a column or table
+// this feature needs doesn't exist yet — i.e. `node scripts/setup-db.mjs`
+// hasn't been run against it since the schema last changed. Without this,
+// that failure looked identical to a generic connectivity problem, which
+// made it impossible to tell the two apart from the error message alone —
+// e.g. the homepage/site-settings "Search Engine Indexing" toggle failing
+// to save with a generic "Save failed" every time, with no way to tell
+// whether that meant "DATABASE_URL is wrong" or "the no_index column/
+// site_settings table doesn't exist yet on this database."
+export function dbErrorMessage(err: unknown): string {
+  const message = err instanceof Error ? err.message : String(err);
+  if (/column .* does not exist|relation .* does not exist/i.test(message)) {
+    return "Couldn't save — the database is missing a column or table this feature needs. Run `node scripts/setup-db.mjs` against this database (see README), then try again.";
+  }
+  return DB_ERROR_MESSAGE;
+}

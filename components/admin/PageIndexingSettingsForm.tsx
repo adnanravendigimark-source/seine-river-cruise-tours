@@ -1,69 +1,92 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import IndexingToggle from "./IndexingToggle";
 import type { PageIndexingSettings } from "@/lib/settings";
 
+// Unlike Post/Homepage/Privacy Policy, this page has nothing else to
+// batch a save with, so each toggle saves itself immediately on click
+// (like a normal settings switch) instead of waiting for a separate
+// "Save Changes" button — that extra step was easy to miss and made it
+// look like the toggle "didn't work" when really the change just hadn't
+// been saved yet.
 export default function PageIndexingSettingsForm({ initial }: { initial: PageIndexingSettings }) {
-  const router = useRouter();
   const [settings, setSettings] = useState<PageIndexingSettings>(initial);
-  const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
+  const [savingKey, setSavingKey] = useState<keyof PageIndexingSettings | null>(null);
   const [error, setError] = useState("");
 
-  function update<K extends keyof PageIndexingSettings>(key: K, value: PageIndexingSettings[K]) {
-    setSettings((s) => ({ ...s, [key]: value }));
-    setSaved(false);
-  }
+  // `initial` comes from the server component's render, which Next.js's
+  // client-side router cache can keep serving a stale copy of for up to
+  // ~30s after navigating away and back (router.refresh() after a save
+  // didn't fully close this — the cache is keyed by more than just this
+  // page). Re-fetching directly from the API on every mount sidesteps
+  // that cache entirely: this is a plain fetch to a Route Handler, not a
+  // page navigation, so it's never served from the router cache and
+  // always reflects what's actually in the database right now.
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/admin/settings", { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data && !cancelled) setSettings(data);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setSaving(true);
+  async function toggle<K extends keyof PageIndexingSettings>(key: K, next: boolean) {
+    const previous = settings;
+    const updated = { ...settings, [key]: next };
+    setSettings(updated);
+    setSavingKey(key);
     setError("");
+
     const res = await fetch("/api/admin/settings", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(settings),
+      body: JSON.stringify(updated),
     });
-    setSaving(false);
+    const data = await res.json().catch(() => ({}));
+    setSavingKey(null);
+
     if (!res.ok) {
-      setError("Save failed. Please try again.");
-      return;
+      setSettings(previous); // revert the optimistic flip
+      setError(data.error || "Save failed. Please try again.");
     }
-    setSaved(true);
-    router.refresh();
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
+    <div className="space-y-5">
       {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
-      {saved && <p className="rounded-lg bg-green-50 px-3 py-2 text-sm text-green-700">Saved.</p>}
 
       <div>
         <p className="mb-2 text-sm font-semibold text-stone-900">About page</p>
-        <IndexingToggle checked={settings.aboutNoIndex} onChange={(next) => update("aboutNoIndex", next)} />
+        <IndexingToggle
+          checked={settings.aboutNoIndex}
+          disabled={savingKey === "aboutNoIndex"}
+          onChange={(next) => toggle("aboutNoIndex", next)}
+        />
       </div>
 
       <div>
         <p className="mb-2 text-sm font-semibold text-stone-900">Contact page</p>
-        <IndexingToggle checked={settings.contactNoIndex} onChange={(next) => update("contactNoIndex", next)} />
+        <IndexingToggle
+          checked={settings.contactNoIndex}
+          disabled={savingKey === "contactNoIndex"}
+          onChange={(next) => toggle("contactNoIndex", next)}
+        />
       </div>
 
       <div>
         <p className="mb-2 text-sm font-semibold text-stone-900">Blog listing page</p>
-        <IndexingToggle checked={settings.blogNoIndex} onChange={(next) => update("blogNoIndex", next)} />
+        <IndexingToggle
+          checked={settings.blogNoIndex}
+          disabled={savingKey === "blogNoIndex"}
+          onChange={(next) => toggle("blogNoIndex", next)}
+        />
       </div>
-
-      <div className="border-t border-stone-200 pt-5">
-        <button
-          type="submit"
-          disabled={saving}
-          className="rounded-lg bg-seine-amber px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-seine-amber/90 disabled:opacity-60"
-        >
-          {saving ? "Saving…" : "Save Changes"}
-        </button>
-      </div>
-    </form>
+    </div>
   );
 }

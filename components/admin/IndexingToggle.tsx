@@ -9,9 +9,11 @@
 export default function IndexingToggle({
   checked,
   onChange,
+  disabled = false,
 }: {
   checked: boolean;
   onChange: (next: boolean) => void;
+  disabled?: boolean;
 }) {
   const enabled = !checked; // checked = noIndex; the switch shows "indexing allowed"
 
@@ -30,11 +32,12 @@ export default function IndexingToggle({
           type="button"
           role="switch"
           aria-checked={enabled}
+          disabled={disabled}
           // Clicking flips the visual "enabled" state to !enabled, which
           // means the new noIndex value (what the parent form stores) is
           // simply the current `enabled` value.
           onClick={() => onChange(enabled)}
-          className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition ${
+          className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition disabled:opacity-60 ${
             enabled ? "bg-green-500" : "bg-stone-300"
           }`}
         >

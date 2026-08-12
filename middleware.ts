@@ -42,6 +42,23 @@ function withNoIndex(res: NextResponse) {
   return res;
 }
 
+// Every content page (home, about, blog, tours, etc.) already reads
+// admin-edited content straight from the database on every request
+// (`export const dynamic = "force-dynamic"` on all of them) — but without
+// an explicit Cache-Control header, the *browser itself* can still reuse a
+// cached copy of the previous HTML response on a normal reload or
+// navigation, so a save in /admin only visibly showed up after a hard
+// refresh (which bypasses the browser's HTTP cache). This forces every
+// browser/proxy to always revalidate with the server for every page, so a
+// normal refresh — or just navigating to the page — is enough to see the
+// latest saved content immediately, no hard refresh needed. Only applies
+// to page/API responses; the matcher below already excludes static assets
+// (_next/static, images, etc.), which should stay cacheable as normal.
+function withNoCache(res: NextResponse) {
+  res.headers.set("Cache-Control", "no-store, must-revalidate");
+  return res;
+}
+
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
@@ -50,7 +67,8 @@ export async function middleware(req: NextRequest) {
   const isAdminArea = pathname.startsWith("/admin") || pathname.startsWith("/api/admin");
 
   if (!isAdminPage && !isAdminApi) {
-    return isAdminArea ? withNoIndex(NextResponse.next()) : NextResponse.next();
+    const res = withNoCache(NextResponse.next());
+    return isAdminArea ? withNoIndex(res) : res;
   }
 
   const token = req.cookies.get(ADMIN_COOKIE_NAME)?.value;
@@ -58,34 +76,41 @@ export async function middleware(req: NextRequest) {
 
   if (!session) {
     if (isAdminApi) {
-      return withNoIndex(NextResponse.json({ error: "Unauthorized" }, { status: 401 }));
+      return withNoCache(withNoIndex(NextResponse.json({ error: "Unauthorized" }, { status: 401 })));
     }
     const loginUrl = new URL("/admin/login", req.url);
     loginUrl.searchParams.set("next", pathname);
-    return withNoIndex(NextResponse.redirect(loginUrl));
+    return withNoCache(withNoIndex(NextResponse.redirect(loginUrl)));
   }
 
   const isUsersArea = pathname.startsWith("/admin/users") || pathname.startsWith("/api/admin/users");
   if (isUsersArea && session.role !== "admin") {
     if (isAdminApi) {
-      return withNoIndex(NextResponse.json({ error: "Admins only." }, { status: 403 }));
+      return withNoCache(withNoIndex(NextResponse.json({ error: "Admins only." }, { status: 403 })));
     }
-    return withNoIndex(NextResponse.redirect(new URL("/admin", req.url)));
+    return withNoCache(withNoIndex(NextResponse.redirect(new URL("/admin", req.url))));
   }
 
   if (session.role !== "admin") {
     const matched = PAGE_ROUTES.find((r) => r.test(pathname));
     if (matched && !session.pages.includes(matched.key)) {
       if (isAdminApi) {
-        return withNoIndex(NextResponse.json({ error: "You don't have access to this section." }, { status: 403 }));
+        return withNoCache(
+          withNoIndex(NextResponse.json({ error: "You don't have access to this section." }, { status: 403 }))
+        );
       }
-      return withNoIndex(NextResponse.redirect(new URL("/admin", req.url)));
+      return withNoCache(withNoIndex(NextResponse.redirect(new URL("/admin", req.url))));
     }
   }
 
-  return withNoIndex(NextResponse.next());
+  return withNoCache(withNoIndex(NextResponse.next()));
 }
 
+// Runs on every page and API route except Next's own static asset paths
+// (_next/static, _next/image) and the favicon — those should stay
+// cacheable as normal. Everything else is admin-editable content, so it
+// all gets the no-cache header above, and the /admin & /api/admin subset
+// additionally gets the auth/access-control logic and noindex header.
 export const config = {
-  matcher: ["/admin/:path*", "/api/admin/:path*"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };

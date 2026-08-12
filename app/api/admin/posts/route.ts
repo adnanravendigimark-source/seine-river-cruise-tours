@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getPosts, savePosts, type Post } from "@/lib/posts";
-import { DB_ERROR_MESSAGE } from "@/lib/db";
+import { dbErrorMessage } from "@/lib/db";
 
 export async function GET() {
   return NextResponse.json(await getPosts());
@@ -28,8 +28,8 @@ export async function POST(req: Request) {
   posts.push({ ...body, content: body.content || [] });
   try {
     await savePosts(posts);
-  } catch {
-    return NextResponse.json({ error: DB_ERROR_MESSAGE }, { status: 500 });
+  } catch (err) {
+    return NextResponse.json({ error: dbErrorMessage(err) }, { status: 500 });
   }
   return NextResponse.json({ ok: true });
 }

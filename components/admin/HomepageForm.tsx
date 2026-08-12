@@ -31,9 +31,10 @@ export default function HomepageForm({ initial }: { initial: HomepageContent }) 
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(content),
     });
+    const data = await res.json().catch(() => ({}));
     setSaving(false);
     if (!res.ok) {
-      setError("Save failed. Please try again.");
+      setError(data.error || "Save failed. Please try again.");
       return;
     }
     setSaved(true);

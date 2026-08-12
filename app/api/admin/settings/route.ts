@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getPageIndexingSettings, savePageIndexingSettings } from "@/lib/settings";
-import { DB_ERROR_MESSAGE } from "@/lib/db";
+import { dbErrorMessage } from "@/lib/db";
 
 // Access to /admin/pages and /api/admin/settings is gated by the "pages"
 // page-access key in middleware.ts, same pattern as posts/homepage/privacy
@@ -20,8 +20,8 @@ export async function PUT(req: Request) {
 
   try {
     await savePageIndexingSettings(data);
-  } catch {
-    return NextResponse.json({ error: DB_ERROR_MESSAGE }, { status: 500 });
+  } catch (err) {
+    return NextResponse.json({ error: dbErrorMessage(err) }, { status: 500 });
   }
   return NextResponse.json({ ok: true });
 }

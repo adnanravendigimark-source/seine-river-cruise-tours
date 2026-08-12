@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getPosts, getPost, savePosts, type Post } from "@/lib/posts";
 import { getSession } from "@/lib/session";
-import { DB_ERROR_MESSAGE } from "@/lib/db";
+import { dbErrorMessage } from "@/lib/db";
 
 export async function GET(_req: Request, { params }: { params: { slug: string } }) {
   const post = await getPost(params.slug);
@@ -17,8 +17,8 @@ export async function PUT(req: Request, { params }: { params: { slug: string } }
   posts[idx] = { ...body, slug: params.slug, content: body.content || [] };
   try {
     await savePosts(posts);
-  } catch {
-    return NextResponse.json({ error: DB_ERROR_MESSAGE }, { status: 500 });
+  } catch (err) {
+    return NextResponse.json({ error: dbErrorMessage(err) }, { status: 500 });
   }
   return NextResponse.json({ ok: true });
 }
@@ -36,8 +36,8 @@ export async function DELETE(_req: Request, { params }: { params: { slug: string
   }
   try {
     await savePosts(next);
-  } catch {
-    return NextResponse.json({ error: DB_ERROR_MESSAGE }, { status: 500 });
+  } catch (err) {
+    return NextResponse.json({ error: dbErrorMessage(err) }, { status: 500 });
   }
   return NextResponse.json({ ok: true });
 }

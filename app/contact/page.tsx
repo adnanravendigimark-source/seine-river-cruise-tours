@@ -32,7 +32,7 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-const EMAIL = "contact@seinerivercruisetours.com";
+const EMAIL = "livetravelpartner@gmail.com";
 
 const reasons = [
   {
