@@ -203,13 +203,13 @@ export default function TourForm({
 
       <div className="grid gap-5 sm:grid-cols-2">
         <div>
-          <label className={labelClass}>GetYourGuide link path</label>
+          <label className={labelClass}>GetYourGuide link (path or full URL)</label>
           <input
             required
             value={tour.hrefPath}
             onChange={(e) => update("hrefPath", e.target.value)}
             className={inputClass}
-            placeholder="paris-l16/tour-name-t12345"
+            placeholder="paris-l16/tour-name-t12345 — or paste a full https:// URL"
           />
         </div>
         <div>
