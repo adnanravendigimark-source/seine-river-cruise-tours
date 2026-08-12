@@ -29,6 +29,11 @@ export async function generateMetadata(): Promise<Metadata> {
     { title: homepage.heroHeading, description: homepage.heroSubheading, image: homepage.heroImage }
   );
   return {
+    // Left unset when blank so the page inherits the root layout's
+    // default title/description — an admin-entered SEO Title/Meta
+    // Description (Homepage → SEO tab) always overrides that default.
+    ...(homepage.metaTitle.trim() ? { title: homepage.metaTitle } : {}),
+    ...(homepage.metaDescription.trim() ? { description: homepage.metaDescription } : {}),
     alternates: { canonical: resolveCanonical("/", homepage.canonicalUrl) },
     robots: resolveRobots(homepage.noIndex, homepage.noFollow),
     openGraph: { title: og.title, description: og.description, url: "/", images: og.image ? [{ url: og.image }] : undefined },

@@ -12,20 +12,31 @@ export default function Logo({
   className = "",
   variant = "compact",
   theme = "light",
+  src = "",
+  alt = "Seine River Cruise Tours logo",
 }: {
   className?: string;
   variant?: "compact" | "stacked";
   theme?: "light" | "dark";
+  // Admin-uploaded logo override (Homepage → Images tab). Blank (the
+  // default) keeps using the bundled Logo.png asset below, unchanged.
+  src?: string;
+  alt?: string;
 }) {
   const isDark = theme === "dark";
+  const customSrc = src.trim();
 
   const iconWrap = (size: string) => (
     <span
-      className={`flex ${size} shrink-0 items-center justify-center overflow-hidden rounded-full ring-1 ${
+      className={`relative flex ${size} shrink-0 items-center justify-center overflow-hidden rounded-full ring-1 ${
         isDark ? "ring-white/15" : "ring-stone-900/10"
       }`}
     >
-      <Image src={logoImg} alt="Seine River Cruise Tours logo" className="h-full w-full object-cover" priority />
+      {customSrc ? (
+        <Image src={customSrc} alt={alt} fill sizes="80px" className="object-cover" priority />
+      ) : (
+        <Image src={logoImg} alt={alt} className="h-full w-full object-cover" priority />
+      )}
     </span>
   );
 

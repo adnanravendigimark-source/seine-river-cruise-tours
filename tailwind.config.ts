@@ -17,14 +17,22 @@ const config: Config = {
           900: "#1a2422",
         },
         gold: {
-          400: "#e0a94a",
+          400: "rgb(var(--color-gold-400) / <alpha-value>)",
           500: "#c6892c",
           600: "#a06d1f",
         },
+        // seine.* and gold.400 are backed by CSS variables (defaults in
+        // globals.css :root) instead of fixed hex, so the admin-editable
+        // "Brand Colors" panel (/admin/homepage → Advanced SEO tab) can
+        // override them site-wide at runtime — see app/layout.tsx, which
+        // injects the admin's chosen values as an inline <style> tag. The
+        // `rgb(var(...) / <alpha-value>)` form is Tailwind's documented
+        // pattern for CSS-variable colors that still support opacity
+        // modifiers like `bg-seine-teal/40`, used throughout.
         seine: {
-          teal: "#0c7489",
-          amber: "#e8823a",
-          ink: "#0a2e35",
+          teal: "rgb(var(--color-seine-teal) / <alpha-value>)",
+          amber: "rgb(var(--color-seine-amber) / <alpha-value>)",
+          ink: "rgb(var(--color-seine-ink) / <alpha-value>)",
         },
         navy: {
           900: "#132a2e",

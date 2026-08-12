@@ -2,40 +2,13 @@ import Image from "next/image";
 import SafeImage from "./SafeImage";
 import { getHomepageContent } from "@/lib/homepage";
 
-// Real, free-to-use photography from Unsplash (Unsplash License — free for
-// commercial use). Swap for your own/licensed shots whenever you have them;
-// until then these are legitimate, not placeholders.
-//   Eiffel/Pont d'Iéna: photo by Bao Menglong — unsplash.com
-//   Night river boat:   photo by Michael Pointner — unsplash.com
-//   Louvre daytime:     photo by Chris Karidis — unsplash.com
-//   Riverside cityscape: photo by Zhihao — unsplash.com
-// The hero headline/subhead/badge/rating/photo are content-writer editable
-// from /admin/homepage — this file just renders whatever's in there.
-const galleryImages = [
-  {
-    src: "https://images.unsplash.com/photo-1554144573-91d40c39092a?q=80&w=900&auto=format&fit=crop",
-    alt: "The Eiffel Tower and Pont d'Iéna bridge above the Seine River",
-    label: "The Cruise",
-  },
-  {
-    src: "https://images.unsplash.com/photo-1552585734-b7ae2174b8f9?q=80&w=900&auto=format&fit=crop",
-    alt: "The Louvre Museum along the Seine River banks in Paris",
-    label: "The Louvre",
-  },
-  {
-    src: "https://images.unsplash.com/photo-1739604977885-545151bef26b?q=80&w=900&auto=format&fit=crop",
-    alt: "A river cruise boat gliding past illuminated buildings on the Seine at night",
-    label: "Evening Cruise",
-  },
-  {
-    src: "https://images.unsplash.com/photo-1754407190578-21b05b79a920?q=80&w=900&auto=format&fit=crop",
-    alt: "The Seine River flowing past Parisian buildings and bridges",
-    label: "Riverside Paris",
-  },
-];
-
+// The hero headline/subhead/badge/rating/photo/gallery/buttons are all
+// content-writer editable from /admin/homepage — this file just renders
+// whatever's in there (with sensible defaults so it never looks
+// broken/blank — see DEFAULT_GALLERY etc. in lib/homepage.ts).
 export default async function Hero() {
   const content = await getHomepageContent();
+  const gallery = content.heroGallery;
   return (
     <section
       id="top"
@@ -70,17 +43,17 @@ export default async function Hero() {
 
         <div className="mt-6 flex flex-wrap items-center gap-4">
           <a
-            href="#tours"
+            href={content.heroCtaPrimaryHref}
             className="group inline-flex items-center gap-2 rounded-full bg-seine-amber px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-black/20 transition hover:bg-seine-amber/90"
           >
-            Compare River Cruises
+            {content.heroCtaPrimaryText}
             <span className="transition group-hover:translate-x-0.5">→</span>
           </a>
           <a
-            href="#prices"
+            href={content.heroCtaSecondaryHref}
             className="rounded-full border border-white/40 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
           >
-            See Cruise Prices
+            {content.heroCtaSecondaryText}
           </a>
 
           {/* Floating glass rating card */}
@@ -93,15 +66,15 @@ export default async function Hero() {
           </div>
         </div>
 
-        {/* Real photo strip — boats, skyline, bridge, Notre-Dame. Fixed
+        {/* Photo strip — editable from Homepage → Images tab. Fixed
             (not aspect-square) height so this row stays a compact strip
             instead of growing with viewport width, which is what was
             pushing the hero taller than the viewport and forcing a scroll
             to see it. */}
         <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
-          {galleryImages.map((img) => (
+          {gallery.map((img, i) => (
             <div
-              key={img.label}
+              key={img.label + i}
               className="group relative h-20 overflow-hidden rounded-2xl border border-white/15 shadow-lg shadow-black/20 sm:h-28 lg:h-32"
             >
               <Image

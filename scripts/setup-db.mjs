@@ -307,6 +307,39 @@ async function addSeoColumns() {
   console.log("SEO columns ready.");
 }
 
+// Full homepage CMS rollout — turns every visible piece of the homepage
+// (navbar, footer, hero buttons/gallery, and every content section below
+// the fold) into admin-editable data instead of hardcoded JSX. Each new
+// column defaults to an empty/NULL-ish value; the app layer (lib/homepage.ts)
+// falls back to the exact copy that used to be hardcoded whenever a column
+// is empty, so running this never changes anything visible until an admin
+// actually edits a field in the new /admin/homepage tabs.
+async function addHomepageCmsColumns() {
+  console.log("Ensuring full homepage-CMS columns exist on homepage...");
+  await sql`ALTER TABLE homepage ADD COLUMN IF NOT EXISTS hero_gallery JSONB NOT NULL DEFAULT '[]'`;
+  await sql`ALTER TABLE homepage ADD COLUMN IF NOT EXISTS hero_cta_primary_text TEXT NOT NULL DEFAULT ''`;
+  await sql`ALTER TABLE homepage ADD COLUMN IF NOT EXISTS hero_cta_primary_href TEXT NOT NULL DEFAULT ''`;
+  await sql`ALTER TABLE homepage ADD COLUMN IF NOT EXISTS hero_cta_secondary_text TEXT NOT NULL DEFAULT ''`;
+  await sql`ALTER TABLE homepage ADD COLUMN IF NOT EXISTS hero_cta_secondary_href TEXT NOT NULL DEFAULT ''`;
+  await sql`ALTER TABLE homepage ADD COLUMN IF NOT EXISTS meta_title TEXT NOT NULL DEFAULT ''`;
+  await sql`ALTER TABLE homepage ADD COLUMN IF NOT EXISTS meta_description TEXT NOT NULL DEFAULT ''`;
+  await sql`ALTER TABLE homepage ADD COLUMN IF NOT EXISTS focus_keyword TEXT NOT NULL DEFAULT ''`;
+  // sections_json holds the "What You See", "Illuminations Cruise",
+  // "Practical Info", and "Price Comparison" sections — grouped into one
+  // JSONB column (rather than ~30 separate columns) since they're always
+  // saved together from the same admin tab and read together on every
+  // homepage render.
+  await sql`ALTER TABLE homepage ADD COLUMN IF NOT EXISTS sections_json JSONB NOT NULL DEFAULT '{}'`;
+  // header_json/footer_json/theme_json are technically site-wide (every
+  // page renders the navbar, footer, and brand colors, not just the
+  // homepage) but are edited from the Homepage admin tab for simplicity —
+  // they live here rather than a new table since there's only one site.
+  await sql`ALTER TABLE homepage ADD COLUMN IF NOT EXISTS header_json JSONB NOT NULL DEFAULT '{}'`;
+  await sql`ALTER TABLE homepage ADD COLUMN IF NOT EXISTS footer_json JSONB NOT NULL DEFAULT '{}'`;
+  await sql`ALTER TABLE homepage ADD COLUMN IF NOT EXISTS theme_json JSONB NOT NULL DEFAULT '{}'`;
+  console.log("Homepage-CMS columns ready.");
+}
+
 // Carries forward the old per-page About/Contact noindex flags (which used
 // to live on site_settings) into the new dedicated about_page/contact_page
 // tables, then drops the old columns. Deliberately runs via UPDATE, AFTER
@@ -591,6 +624,7 @@ async function seedContactPage() {
 async function main() {
   await createTables();
   await addSeoColumns();
+  await addHomepageCmsColumns();
   await seedTours();
   await seedPosts();
   await seedHomepage();

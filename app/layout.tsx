@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Cormorant_Garamond } from "next/font/google";
 import { SITE_URL } from "@/lib/site";
 import { resolveRobots } from "@/lib/seo";
+import { getSiteChrome } from "@/lib/homepage";
+import { hexToRgbTriplet } from "@/lib/color";
 import "./globals.css";
 
 // Forces every page in the app to render dynamically, root layout included
@@ -120,14 +122,44 @@ export function generateMetadata(): Metadata {
   };
 }
 
-export default function RootLayout({
+// Turns the admin's saved "Brand Colors" (theme_json, /admin/homepage →
+// Advanced SEO tab) into the CSS variable overrides tailwind.config.ts's
+// seine.*/gold-400 colors read from — see globals.css :root for the
+// defaults this replaces. Any color left blank (or invalid) by the admin
+// is simply omitted, so it keeps using the CSS default. Doing this with a
+// plain <style> tag (not next/head or a client component) means it's
+// server-rendered with the rest of the page, so there's no flash of the
+// wrong color on load.
+function buildThemeStyle(theme: { primary: string; secondary: string; dark: string; accent: string }) {
+  const vars: [string, string | null][] = [
+    ["--color-seine-amber", hexToRgbTriplet(theme.primary)],
+    ["--color-seine-teal", hexToRgbTriplet(theme.secondary)],
+    ["--color-seine-ink", hexToRgbTriplet(theme.dark)],
+    ["--color-gold-400", hexToRgbTriplet(theme.accent)],
+  ];
+  const declarations = vars
+    .filter(([, value]) => value !== null)
+    .map(([name, value]) => `${name}:${value};`)
+    .join("");
+  return declarations ? `:root{${declarations}}` : "";
+}
+
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const { theme } = await getSiteChrome();
+  const themeStyle = buildThemeStyle(theme);
+
   return (
     <html lang="en" className={displayFont.variable}>
       <body className="font-body bg-stone-50 text-stone-900 antialiased">
+        {/* :root custom properties apply from anywhere in the document, so
+            this doesn't need to live in <head> — Next.js's metadata API
+            already owns <head> in the App Router, and manually adding one
+            here would conflict with it. */}
+        {themeStyle && <style dangerouslySetInnerHTML={{ __html: themeStyle }} />}
         {children}
         <script
           type="application/ld+json"

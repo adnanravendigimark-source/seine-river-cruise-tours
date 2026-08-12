@@ -16,7 +16,8 @@ const PAGE_ROUTES: { key: PageKey; test: (p: string) => boolean }[] = [
     test: (p) =>
       p.startsWith("/admin/homepage") ||
       p.startsWith("/admin/recommended") ||
-      p.startsWith("/api/admin/homepage"),
+      p.startsWith("/api/admin/homepage") ||
+      p.startsWith("/api/admin/recommended"),
   },
   { key: "tours", test: (p) => p.startsWith("/admin/tours") || p.startsWith("/api/admin/tours") },
   { key: "posts", test: (p) => p.startsWith("/admin/posts") || p.startsWith("/api/admin/posts") },
