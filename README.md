@@ -81,3 +81,4 @@ nothing beats real photos of the actual cruise.
 Standard Next.js App Router project — deploys as-is to Vercel, Netlify, or
 any Node host. `npm run build && npm run start` for a production build.
 # seine-river-cruise-tours
+# seine-river-cruise-tours
