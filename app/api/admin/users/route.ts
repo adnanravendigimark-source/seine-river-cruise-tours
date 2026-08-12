@@ -4,6 +4,13 @@ import { getSafeUsers, createUser, type UserRole } from "@/lib/users";
 import { PAGE_KEYS, type PageKey } from "@/lib/pageAccess";
 import { DB_ERROR_MESSAGE } from "@/lib/db";
 
+// Force this route to always run as a live serverless function rather than
+// get statically optimized at build time — Next.js can otherwise pre-render
+// a GET-only static response for a route handler like this and silently drop
+// every other exported method (PUT/POST/DELETE), returning 405 for all of
+// them in production even though the code is correct.
+export const dynamic = "force-dynamic";
+
 // Middleware already restricts this whole path to role "admin", but we
 // check again here too — never trust a single layer for something that
 // creates/removes login credentials.

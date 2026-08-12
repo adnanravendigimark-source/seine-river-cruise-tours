@@ -4,6 +4,13 @@ import { getUsers, updateUser, deleteUser, type UserRole } from "@/lib/users";
 import { PAGE_KEYS, type PageKey } from "@/lib/pageAccess";
 import { DB_ERROR_MESSAGE } from "@/lib/db";
 
+// Force this route to always run as a live serverless function rather than
+// get statically optimized at build time — Next.js can otherwise pre-render
+// a GET-only static response for a route handler like this and silently drop
+// every other exported method (PUT/POST/DELETE), returning 405 for all of
+// them in production even though the code is correct.
+export const dynamic = "force-dynamic";
+
 async function requireAdmin() {
   const session = await getSession();
   if (!session || session.role !== "admin") {

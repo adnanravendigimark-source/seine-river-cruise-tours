@@ -3,6 +3,13 @@ import { getToursRaw, saveTours, type TourRecord } from "@/lib/data";
 import { getSession } from "@/lib/session";
 import { DB_ERROR_MESSAGE } from "@/lib/db";
 
+// Force this route to always run as a live serverless function rather than
+// get statically optimized at build time — Next.js can otherwise pre-render
+// a GET-only static response for a route handler like this and silently drop
+// every other exported method (PUT/POST/DELETE), returning 405 for all of
+// them in production even though the code is correct.
+export const dynamic = "force-dynamic";
+
 export async function GET(_req: Request, { params }: { params: { id: string } }) {
   const tour = (await getToursRaw()).find((t) => t.id === params.id);
   if (!tour) return NextResponse.json({ error: "Not found" }, { status: 404 });

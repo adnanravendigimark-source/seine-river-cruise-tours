@@ -4,6 +4,13 @@ import { verifyUserCredentials } from "@/lib/users";
 import { PAGE_KEYS } from "@/lib/pageAccess";
 import { DB_ERROR_MESSAGE } from "@/lib/db";
 
+// Force this route to always run as a live serverless function rather than
+// get statically optimized at build time — Next.js can otherwise pre-render
+// a GET-only static response for a route handler like this and silently drop
+// every other exported method (PUT/POST/DELETE), returning 405 for all of
+// them in production even though the code is correct.
+export const dynamic = "force-dynamic";
+
 // Verifies a Turnstile token with Cloudflare's siteverify endpoint. Returns
 // true if TURNSTILE_SECRET_KEY isn't set at all (captcha not configured —
 // don't lock everyone out), false for any actual failure/error so a bad or

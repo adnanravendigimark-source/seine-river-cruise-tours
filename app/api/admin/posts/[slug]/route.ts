@@ -3,6 +3,13 @@ import { getPosts, getPost, savePosts, type Post } from "@/lib/posts";
 import { getSession } from "@/lib/session";
 import { dbErrorMessage } from "@/lib/db";
 
+// Force this route to always run as a live serverless function rather than
+// get statically optimized at build time — Next.js can otherwise pre-render
+// a GET-only static response for a route handler like this and silently drop
+// every other exported method (PUT/POST/DELETE), returning 405 for all of
+// them in production even though the code is correct.
+export const dynamic = "force-dynamic";
+
 export async function GET(_req: Request, { params }: { params: { slug: string } }) {
   const post = await getPost(params.slug);
   if (!post) return NextResponse.json({ error: "Not found" }, { status: 404 });
