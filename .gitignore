@@ -1,0 +1,12 @@
+node_modules
+.next
+out
+.env
+.env*.local
+.DS_Store
+
+# Images uploaded through the admin CMS (kept locally, not committed)
+public/uploads
+
+# Admin user accounts (password hashes) — created at runtime, not sample data
+data/users.json

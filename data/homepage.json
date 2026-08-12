@@ -1,0 +1,18 @@
+{
+  "heroBadge": "⚓ Certified operators · Free cancellation · Instant confirmation",
+  "heroHeading": "Seine River Cruise Tours — See Paris From the Water",
+  "heroSubheading": "Glide past the Eiffel Tower, Notre-Dame, and the Louvre on a sightseeing or evening cruise along the Seine. Book online — instant confirmation, free cancellation on most tickets.",
+  "heroImage": "https://images.unsplash.com/photo-1760281853031-7d82263729b6?q=80&w=2400&auto=format&fit=crop",
+  "heroImageAlt": "The Eiffel Tower and the Seine River glowing at golden hour in Paris",
+  "ratingValue": "4.36 / 5",
+  "ratingCount": "62,000+ verified reviews",
+  "showFeaturedTour": true,
+  "featuredTourId": "seine-1-hour-sightseeing-cruise",
+  "featuredBadgeLabel": "Most Popular",
+  "featuredUrgencyText": "Best Price · Limited Spots Available",
+  "featuredReasons": [
+    "62,000+ verified reviews — rated 4.36 / 5 on GetYourGuide",
+    "Departs every 30–45 minutes from Port de la Bourdonnais",
+    "Free cancellation up to 24 hours before departure"
+  ]
+}
