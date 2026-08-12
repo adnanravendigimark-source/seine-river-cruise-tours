@@ -18,7 +18,20 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-export const sql = neon(process.env.DATABASE_URL || "postgres://unset");
+// IMPORTANT: neon()'s HTTP driver executes every query as an internal
+// fetch() call. Next.js's App Router automatically caches server-side
+// fetch() calls unless a call explicitly opts out — and neon's internal
+// fetch doesn't do that on its own. Without `fetchOptions: { cache:
+// "no-store" }` here, Next.js can silently cache the *database query
+// responses themselves*: a write (INSERT/UPDATE) still reaches Neon and
+// succeeds, but a subsequent read can be served from Next.js's cached
+// copy of an *older* query response instead of hitting Neon again — so
+// admin saves report success but the "new" content never appears, no
+// matter how many browser/CDN/router caching layers are disabled (this
+// bit is a distinct, server-internal cache those don't touch at all).
+export const sql = neon(process.env.DATABASE_URL || "postgres://unset", {
+  fetchOptions: { cache: "no-store" },
+});
 
 // Shown to the admin (instead of a raw crash) when a save fails because
 // the database couldn't be reached or rejected the query — e.g. DATABASE_URL
