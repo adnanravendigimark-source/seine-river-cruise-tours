@@ -2,7 +2,7 @@
 // access to. Kept in its own dependency-free file (no `fs`, no Node APIs)
 // so it can be safely imported from anywhere — the Edge middleware, the
 // Node API routes, and client components alike.
-export const PAGE_KEYS = ["homepage", "tours", "posts", "faqs", "privacy", "pages"] as const;
+export const PAGE_KEYS = ["homepage", "tours", "posts", "faqs", "privacy", "about", "contact", "pages"] as const;
 
 export type PageKey = (typeof PAGE_KEYS)[number];
 
@@ -12,7 +12,9 @@ export const PAGE_LABELS: Record<PageKey, string> = {
   posts: "Blog Posts",
   faqs: "FAQs",
   privacy: "Privacy Policy",
-  pages: "About / Contact / Blog SEO",
+  about: "About Page",
+  contact: "Contact Page",
+  pages: "Blog Page SEO",
 };
 
 export function isPageKey(value: unknown): value is PageKey {

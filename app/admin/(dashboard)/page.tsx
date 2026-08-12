@@ -4,18 +4,20 @@ import { getPosts } from "@/lib/posts";
 import { getHomepageContent } from "@/lib/homepage";
 import { getSession } from "@/lib/session";
 import type { PageKey } from "@/lib/pageAccess";
-import { HomeIcon, StarBadgeIcon, TicketStackIcon, DocumentIcon, QuestionIcon, ShieldIcon, GlobeIcon } from "@/components/admin/icons";
+import { HomeIcon, StarBadgeIcon, TicketStackIcon, DocumentIcon, QuestionIcon, ShieldIcon, GlobeIcon, InfoIcon, MailIcon } from "@/components/admin/icons";
 
 export const dynamic = "force-dynamic";
 
 const cards: { href: string; label: string; desc: string; icon: typeof HomeIcon; pageKey: PageKey }[] = [
-  { href: "/admin/homepage", label: "Homepage Content", desc: "Hero headline, subheading, and photo.", icon: HomeIcon, pageKey: "homepage" },
+  { href: "/admin/homepage", label: "Homepage Content", desc: "Hero headline, subheading, photo, and SEO.", icon: HomeIcon, pageKey: "homepage" },
   { href: "/admin/recommended", label: "Recommended Tour", desc: "Which cruise gets the gold spotlight + sticky mobile bar.", icon: StarBadgeIcon, pageKey: "homepage" },
   { href: "/admin/tours", label: "Tours & Tickets", desc: "The bookable cruises shown on the homepage.", icon: TicketStackIcon, pageKey: "tours" },
-  { href: "/admin/posts", label: "Blog Posts", desc: "Articles shown on /blog.", icon: DocumentIcon, pageKey: "posts" },
+  { href: "/admin/posts", label: "Blog Posts", desc: "Articles shown on /blog, including full SEO per post.", icon: DocumentIcon, pageKey: "posts" },
   { href: "/admin/faqs", label: "FAQs", desc: "Homepage FAQ accordion.", icon: QuestionIcon, pageKey: "faqs" },
   { href: "/admin/privacy", label: "Privacy Policy", desc: "Legal page shown at /privacy-policy, linked from the footer.", icon: ShieldIcon, pageKey: "privacy" },
-  { href: "/admin/pages", label: "About / Contact / Blog SEO", desc: "Search engine indexing for the pages without their own editor.", icon: GlobeIcon, pageKey: "pages" },
+  { href: "/admin/about", label: "About Page", desc: "Every section of /about, plus its SEO.", icon: InfoIcon, pageKey: "about" },
+  { href: "/admin/contact", label: "Contact Page", desc: "Every section of /contact, plus its SEO.", icon: MailIcon, pageKey: "contact" },
+  { href: "/admin/pages", label: "Blog Page SEO", desc: "SEO fields for the /blog listing page.", icon: GlobeIcon, pageKey: "pages" },
 ];
 
 export default async function AdminDashboardPage() {

@@ -3,12 +3,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import Breadcrumbs from "@/components/Breadcrumbs";
 import QuickAnswer from "@/components/QuickAnswer";
 import BlogPostBody from "@/components/BlogPostBody";
 import BlogSidebar from "@/components/BlogSidebar";
 import SafeImage from "@/components/SafeImage";
 import { getPost } from "@/lib/posts";
-import { resolveRobots } from "@/lib/seo";
+import { resolveRobots, resolveCanonical, resolveOg, buildArticleJsonLd } from "@/lib/seo";
+import { SITE_URL } from "@/lib/site";
 
 const slug = "is-the-seine-dinner-cruise-worth-it";
 
@@ -17,6 +19,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata(): Promise<Metadata> {
   const post = await getPost(slug);
   if (!post) return {};
+  const og = resolveOg(
+    { ogTitle: post.ogTitle, ogDescription: post.ogDescription, ogImage: post.ogImage },
+    { title: post.metaTitle, description: post.metaDescription, image: post.image }
+  );
   return {
     title: post.metaTitle,
     description: post.metaDescription,
@@ -26,15 +32,16 @@ export async function generateMetadata(): Promise<Metadata> {
       "Bateaux Parisiens dinner cruise",
       "Paris dinner cruise worth it",
     ],
-    alternates: { canonical: `/blog/${slug}` },
-    robots: resolveRobots(post.noIndex),
+    alternates: { canonical: resolveCanonical(`/blog/${slug}`, post.canonicalUrl) },
+    robots: resolveRobots(post.noIndex, post.noFollow),
     openGraph: {
-      title: post.metaTitle,
-      description: post.metaDescription,
+      title: og.title,
+      description: og.description,
       url: `/blog/${slug}`,
       type: "article",
-      images: post.image ? [{ url: post.image, alt: post.imageAlt }] : undefined,
+      images: og.image ? [{ url: og.image, alt: post.imageAlt }] : undefined,
     },
+    twitter: { card: "summary_large_image", title: og.title, description: og.description, images: og.image ? [og.image] : undefined },
   };
 }
 
@@ -42,11 +49,22 @@ export default async function Post() {
   const post = await getPost(slug);
   if (!post) notFound();
 
+  const articleJsonLd = buildArticleJsonLd({
+    headline: post.title,
+    description: post.metaDescription,
+    image: post.image,
+    datePublished: post.date,
+    url: `${SITE_URL}/blog/${slug}`,
+    authorName: "Seine River Cruise Tours",
+    siteName: "Seine River Cruise Tours",
+  });
+
   return (
     <>
       <Header />
+      <Breadcrumbs items={[{ name: "Blog", path: "/blog" }, { name: post.title, path: `/blog/${slug}` }]} />
       <main>
-        <div className="mx-auto max-w-4xl px-4 pt-12 sm:px-6">
+        <div className="mx-auto max-w-4xl px-4 pt-6 sm:px-6">
           <Link href="/blog" className="text-sm font-medium text-seine-teal">← All guides</Link>
           <div className="mt-6 flex items-center gap-3 text-xs font-semibold uppercase tracking-wide text-seine-teal">
             <span>{post.category}</span>
@@ -98,6 +116,7 @@ export default async function Post() {
         </div>
       </main>
       <Footer />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }} />
     </>
   );
 }

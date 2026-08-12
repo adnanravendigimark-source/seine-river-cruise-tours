@@ -22,6 +22,8 @@ const PAGE_ROUTES: { key: PageKey; test: (p: string) => boolean }[] = [
   { key: "posts", test: (p) => p.startsWith("/admin/posts") || p.startsWith("/api/admin/posts") },
   { key: "faqs", test: (p) => p.startsWith("/admin/faqs") || p.startsWith("/api/admin/faqs") },
   { key: "privacy", test: (p) => p.startsWith("/admin/privacy") || p.startsWith("/api/admin/privacy") },
+  { key: "about", test: (p) => p.startsWith("/admin/about") || p.startsWith("/api/admin/about") },
+  { key: "contact", test: (p) => p.startsWith("/admin/contact") || p.startsWith("/api/admin/contact") },
   { key: "pages", test: (p) => p.startsWith("/admin/pages") || p.startsWith("/api/admin/settings") },
 ];
 

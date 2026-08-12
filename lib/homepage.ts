@@ -19,6 +19,15 @@ export interface HomepageContent {
   // Search Engine Indexing toggle (admin-editable). false (default) =
   // indexable (index, follow). true = noindex, nofollow. See lib/seo.ts.
   noIndex: boolean;
+  // Independent "Link Following" toggle — see lib/seo.ts's resolveRobots.
+  noFollow: boolean;
+  // Blank = auto-generate from SITE_URL + "/" (see lib/seo.ts resolveCanonical).
+  canonicalUrl: string;
+  // Open Graph / Twitter overrides — blank falls back to the page's own
+  // title/description/hero image (see lib/seo.ts resolveOg).
+  ogTitle: string;
+  ogDescription: string;
+  ogImage: string;
 }
 
 // Used whenever the `homepage` table is empty or unreachable (e.g.
@@ -45,6 +54,11 @@ const DEFAULT_HOMEPAGE_CONTENT: HomepageContent = {
     "Free cancellation up to 24 hours before",
   ],
   noIndex: false,
+  noFollow: false,
+  canonicalUrl: "",
+  ogTitle: "",
+  ogDescription: "",
+  ogImage: "",
 };
 
 function parseReasons(value: unknown): string[] {
@@ -75,6 +89,11 @@ function rowToHomepage(row: any): HomepageContent {
     featuredUrgencyText: row.featured_urgency_text || "",
     featuredReasons: parseReasons(row.featured_reasons),
     noIndex: !!row.no_index,
+    noFollow: !!row.no_follow,
+    canonicalUrl: row.canonical_url || "",
+    ogTitle: row.og_title || "",
+    ogDescription: row.og_description || "",
+    ogImage: row.og_image || "",
   };
 }
 
@@ -92,12 +111,14 @@ export async function saveHomepageContent(data: HomepageContent): Promise<void> 
     INSERT INTO homepage (
       id, hero_badge, hero_heading, hero_subheading, hero_image, hero_image_alt,
       rating_value, rating_count, show_featured_tour, featured_tour_id,
-      featured_badge_label, featured_urgency_text, featured_reasons, no_index
+      featured_badge_label, featured_urgency_text, featured_reasons, no_index,
+      no_follow, canonical_url, og_title, og_description, og_image
     ) VALUES (
       1, ${data.heroBadge}, ${data.heroHeading}, ${data.heroSubheading}, ${data.heroImage},
       ${data.heroImageAlt}, ${data.ratingValue}, ${data.ratingCount}, ${!!data.showFeaturedTour},
       ${data.featuredTourId}, ${data.featuredBadgeLabel}, ${data.featuredUrgencyText},
-      ${JSON.stringify(data.featuredReasons || [])}::jsonb, ${!!data.noIndex}
+      ${JSON.stringify(data.featuredReasons || [])}::jsonb, ${!!data.noIndex},
+      ${!!data.noFollow}, ${data.canonicalUrl || ""}, ${data.ogTitle || ""}, ${data.ogDescription || ""}, ${data.ogImage || ""}
     )
     ON CONFLICT (id) DO UPDATE SET
       hero_badge = EXCLUDED.hero_badge,
@@ -112,6 +133,11 @@ export async function saveHomepageContent(data: HomepageContent): Promise<void> 
       featured_badge_label = EXCLUDED.featured_badge_label,
       featured_urgency_text = EXCLUDED.featured_urgency_text,
       featured_reasons = EXCLUDED.featured_reasons,
-      no_index = EXCLUDED.no_index
+      no_index = EXCLUDED.no_index,
+      no_follow = EXCLUDED.no_follow,
+      canonical_url = EXCLUDED.canonical_url,
+      og_title = EXCLUDED.og_title,
+      og_description = EXCLUDED.og_description,
+      og_image = EXCLUDED.og_image
   `;
 }

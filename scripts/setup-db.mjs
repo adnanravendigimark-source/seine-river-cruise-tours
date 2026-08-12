@@ -111,7 +111,12 @@ async function createTables() {
       recommended_tour_after_block INTEGER,
       content JSONB NOT NULL DEFAULT '[]',
       sort_order INTEGER NOT NULL DEFAULT 0,
-      no_index BOOLEAN NOT NULL DEFAULT false
+      no_index BOOLEAN NOT NULL DEFAULT false,
+      no_follow BOOLEAN NOT NULL DEFAULT false,
+      canonical_url TEXT NOT NULL DEFAULT '',
+      og_title TEXT NOT NULL DEFAULT '',
+      og_description TEXT NOT NULL DEFAULT '',
+      og_image TEXT NOT NULL DEFAULT ''
     )
   `;
 
@@ -131,6 +136,11 @@ async function createTables() {
       featured_urgency_text TEXT NOT NULL DEFAULT '',
       featured_reasons JSONB NOT NULL DEFAULT '[]',
       no_index BOOLEAN NOT NULL DEFAULT false,
+      no_follow BOOLEAN NOT NULL DEFAULT false,
+      canonical_url TEXT NOT NULL DEFAULT '',
+      og_title TEXT NOT NULL DEFAULT '',
+      og_description TEXT NOT NULL DEFAULT '',
+      og_image TEXT NOT NULL DEFAULT '',
       CONSTRAINT homepage_singleton CHECK (id = 1)
     )
   `;
@@ -151,20 +161,93 @@ async function createTables() {
       last_updated TEXT NOT NULL DEFAULT '',
       content JSONB NOT NULL DEFAULT '[]',
       no_index BOOLEAN NOT NULL DEFAULT false,
+      no_follow BOOLEAN NOT NULL DEFAULT false,
+      canonical_url TEXT NOT NULL DEFAULT '',
+      meta_title TEXT NOT NULL DEFAULT '',
+      meta_description TEXT NOT NULL DEFAULT '',
+      og_title TEXT NOT NULL DEFAULT '',
+      og_description TEXT NOT NULL DEFAULT '',
+      og_image TEXT NOT NULL DEFAULT '',
       CONSTRAINT privacy_policy_singleton CHECK (id = 1)
     )
   `;
 
-  // Per-page "Search Engine Indexing" toggle for the 3 public pages that
-  // don't have their own dedicated table (About, Contact, Blog listing —
-  // see lib/settings.ts). Defaults to false (indexable) for all three,
-  // same default as every other page's own no_index column.
+  // Full SEO fields for the About page — every field admin-editable at
+  // /admin/about (see lib/about.ts).
+  await sql`
+    CREATE TABLE IF NOT EXISTS about_page (
+      id INTEGER PRIMARY KEY DEFAULT 1,
+      hero_eyebrow TEXT NOT NULL DEFAULT '',
+      hero_heading TEXT NOT NULL DEFAULT '',
+      hero_subheading TEXT NOT NULL DEFAULT '',
+      hero_image TEXT NOT NULL DEFAULT '',
+      hero_image_alt TEXT NOT NULL DEFAULT '',
+      intro_heading TEXT NOT NULL DEFAULT '',
+      intro_paragraph_1 TEXT NOT NULL DEFAULT '',
+      intro_paragraph_2 TEXT NOT NULL DEFAULT '',
+      intro_image TEXT NOT NULL DEFAULT '',
+      intro_image_alt TEXT NOT NULL DEFAULT '',
+      reasons_heading TEXT NOT NULL DEFAULT '',
+      reasons_subheading TEXT NOT NULL DEFAULT '',
+      reasons JSONB NOT NULL DEFAULT '[]',
+      disclosure_heading TEXT NOT NULL DEFAULT '',
+      disclosure_body TEXT NOT NULL DEFAULT '',
+      cta_text TEXT NOT NULL DEFAULT '',
+      cta_button_label TEXT NOT NULL DEFAULT '',
+      meta_title TEXT NOT NULL DEFAULT '',
+      meta_description TEXT NOT NULL DEFAULT '',
+      canonical_url TEXT NOT NULL DEFAULT '',
+      no_index BOOLEAN NOT NULL DEFAULT false,
+      no_follow BOOLEAN NOT NULL DEFAULT false,
+      og_title TEXT NOT NULL DEFAULT '',
+      og_description TEXT NOT NULL DEFAULT '',
+      og_image TEXT NOT NULL DEFAULT '',
+      CONSTRAINT about_page_singleton CHECK (id = 1)
+    )
+  `;
+
+  // Full SEO fields for the Contact page — every field admin-editable at
+  // /admin/contact (see lib/contact.ts).
+  await sql`
+    CREATE TABLE IF NOT EXISTS contact_page (
+      id INTEGER PRIMARY KEY DEFAULT 1,
+      hero_eyebrow TEXT NOT NULL DEFAULT '',
+      hero_heading TEXT NOT NULL DEFAULT '',
+      hero_subheading TEXT NOT NULL DEFAULT '',
+      email TEXT NOT NULL DEFAULT '',
+      email_note TEXT NOT NULL DEFAULT '',
+      reasons_heading TEXT NOT NULL DEFAULT '',
+      reasons JSONB NOT NULL DEFAULT '[]',
+      footer_note TEXT NOT NULL DEFAULT '',
+      cta_heading TEXT NOT NULL DEFAULT '',
+      cta_button_label TEXT NOT NULL DEFAULT '',
+      meta_title TEXT NOT NULL DEFAULT '',
+      meta_description TEXT NOT NULL DEFAULT '',
+      canonical_url TEXT NOT NULL DEFAULT '',
+      no_index BOOLEAN NOT NULL DEFAULT false,
+      no_follow BOOLEAN NOT NULL DEFAULT false,
+      og_title TEXT NOT NULL DEFAULT '',
+      og_description TEXT NOT NULL DEFAULT '',
+      og_image TEXT NOT NULL DEFAULT '',
+      CONSTRAINT contact_page_singleton CHECK (id = 1)
+    )
+  `;
+
+  // Full SEO fields for the Blog listing page — the one remaining public
+  // page with no dedicated content table (see lib/settings.ts). About and
+  // Contact used to share this table via *_no_index columns before they
+  // got their own dedicated tables above.
   await sql`
     CREATE TABLE IF NOT EXISTS site_settings (
       id INTEGER PRIMARY KEY DEFAULT 1,
-      about_no_index BOOLEAN NOT NULL DEFAULT false,
-      contact_no_index BOOLEAN NOT NULL DEFAULT false,
       blog_no_index BOOLEAN NOT NULL DEFAULT false,
+      blog_no_follow BOOLEAN NOT NULL DEFAULT false,
+      blog_meta_title TEXT NOT NULL DEFAULT '',
+      blog_meta_description TEXT NOT NULL DEFAULT '',
+      blog_canonical_url TEXT NOT NULL DEFAULT '',
+      blog_og_title TEXT NOT NULL DEFAULT '',
+      blog_og_description TEXT NOT NULL DEFAULT '',
+      blog_og_image TEXT NOT NULL DEFAULT '',
       CONSTRAINT site_settings_singleton CHECK (id = 1)
     )
   `;
@@ -181,6 +264,73 @@ async function createTables() {
   `;
 
   console.log("Tables ready.");
+}
+
+// Full SEO field rollout (canonical URL, independent "Link Following"
+// toggle, Open Graph overrides) on every table that already existed
+// before these columns were added. Safe to re-run — ADD COLUMN IF NOT
+// EXISTS is a no-op when the column is already there, so this never
+// touches content you've already edited through the live admin panel.
+async function addSeoColumns() {
+  console.log("Ensuring SEO columns (canonical/follow/OG) exist on posts/homepage/privacy_policy...");
+
+  await sql`ALTER TABLE posts ADD COLUMN IF NOT EXISTS no_follow BOOLEAN NOT NULL DEFAULT false`;
+  await sql`ALTER TABLE posts ADD COLUMN IF NOT EXISTS canonical_url TEXT NOT NULL DEFAULT ''`;
+  await sql`ALTER TABLE posts ADD COLUMN IF NOT EXISTS og_title TEXT NOT NULL DEFAULT ''`;
+  await sql`ALTER TABLE posts ADD COLUMN IF NOT EXISTS og_description TEXT NOT NULL DEFAULT ''`;
+  await sql`ALTER TABLE posts ADD COLUMN IF NOT EXISTS og_image TEXT NOT NULL DEFAULT ''`;
+
+  await sql`ALTER TABLE homepage ADD COLUMN IF NOT EXISTS no_follow BOOLEAN NOT NULL DEFAULT false`;
+  await sql`ALTER TABLE homepage ADD COLUMN IF NOT EXISTS canonical_url TEXT NOT NULL DEFAULT ''`;
+  await sql`ALTER TABLE homepage ADD COLUMN IF NOT EXISTS og_title TEXT NOT NULL DEFAULT ''`;
+  await sql`ALTER TABLE homepage ADD COLUMN IF NOT EXISTS og_description TEXT NOT NULL DEFAULT ''`;
+  await sql`ALTER TABLE homepage ADD COLUMN IF NOT EXISTS og_image TEXT NOT NULL DEFAULT ''`;
+
+  await sql`ALTER TABLE privacy_policy ADD COLUMN IF NOT EXISTS no_follow BOOLEAN NOT NULL DEFAULT false`;
+  await sql`ALTER TABLE privacy_policy ADD COLUMN IF NOT EXISTS canonical_url TEXT NOT NULL DEFAULT ''`;
+  await sql`ALTER TABLE privacy_policy ADD COLUMN IF NOT EXISTS og_title TEXT NOT NULL DEFAULT ''`;
+  await sql`ALTER TABLE privacy_policy ADD COLUMN IF NOT EXISTS og_description TEXT NOT NULL DEFAULT ''`;
+  await sql`ALTER TABLE privacy_policy ADD COLUMN IF NOT EXISTS og_image TEXT NOT NULL DEFAULT ''`;
+  await sql`ALTER TABLE privacy_policy ADD COLUMN IF NOT EXISTS meta_title TEXT NOT NULL DEFAULT ''`;
+  await sql`ALTER TABLE privacy_policy ADD COLUMN IF NOT EXISTS meta_description TEXT NOT NULL DEFAULT ''`;
+
+  await sql`ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS blog_no_index BOOLEAN NOT NULL DEFAULT false`;
+  await sql`ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS blog_no_follow BOOLEAN NOT NULL DEFAULT false`;
+  await sql`ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS blog_meta_title TEXT NOT NULL DEFAULT ''`;
+  await sql`ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS blog_meta_description TEXT NOT NULL DEFAULT ''`;
+  await sql`ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS blog_canonical_url TEXT NOT NULL DEFAULT ''`;
+  await sql`ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS blog_og_title TEXT NOT NULL DEFAULT ''`;
+  await sql`ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS blog_og_description TEXT NOT NULL DEFAULT ''`;
+  await sql`ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS blog_og_image TEXT NOT NULL DEFAULT ''`;
+  await sql`ALTER TABLE site_settings DROP COLUMN IF EXISTS search_indexing_enabled`;
+
+  console.log("SEO columns ready.");
+}
+
+// Carries forward the old per-page About/Contact noindex flags (which used
+// to live on site_settings) into the new dedicated about_page/contact_page
+// tables, then drops the old columns. Deliberately runs via UPDATE, AFTER
+// seedAboutPage()/seedContactPage() have already inserted the full page
+// content (see main() below) — inserting a bare {id, no_index} row here
+// first would make the seed functions' own COUNT(*) > 0 check think the
+// page was "already configured" and skip seeding the real copy, leaving
+// every other field blank.
+async function migrateAboutContactNoIndex() {
+  const hasOldAboutCol = await sql`
+    SELECT column_name FROM information_schema.columns
+    WHERE table_name = 'site_settings' AND column_name = 'about_no_index'
+  `;
+  if (!hasOldAboutCol.length) return;
+
+  console.log("Carrying forward old About/Contact noindex flags into about_page/contact_page...");
+  const [old] = await sql`SELECT about_no_index, contact_no_index FROM site_settings WHERE id = 1 LIMIT 1`;
+  if (old) {
+    await sql`UPDATE about_page SET no_index = ${!!old.about_no_index} WHERE id = 1`;
+    await sql`UPDATE contact_page SET no_index = ${!!old.contact_no_index} WHERE id = 1`;
+  }
+  await sql`ALTER TABLE site_settings DROP COLUMN IF EXISTS about_no_index`;
+  await sql`ALTER TABLE site_settings DROP COLUMN IF EXISTS contact_no_index`;
+  console.log("About/Contact noindex flags migrated.");
 }
 
 async function seedTours() {
@@ -319,8 +469,118 @@ async function seedSiteSettings() {
     console.log("site_settings: already configured — skipping seed.");
     return;
   }
-  await sql`INSERT INTO site_settings (id) VALUES (1) ON CONFLICT (id) DO NOTHING`;
-  console.log("site_settings: seeded (About/Contact/Blog indexing ON by default, same as every other page).");
+  const blogTitle = "Seine River Cruise Guides & Tips | Seine River Cruise Tours";
+  const blogDescription =
+    "Practical guides for a Seine River cruise in Paris — sightseeing vs. dinner cruise, best time to go, and more.";
+  await sql`
+    INSERT INTO site_settings (id, blog_meta_title, blog_meta_description)
+    VALUES (1, ${blogTitle}, ${blogDescription})
+    ON CONFLICT (id) DO NOTHING
+  `;
+  console.log("site_settings: seeded (Blog listing page SEO fields, indexing ON by default).");
+}
+
+// About/Contact used to be a single indexing toggle each on site_settings
+// — they're now full CMS-editable pages (lib/about.ts, lib/contact.ts).
+// This seeds the exact copy that used to be hardcoded directly in
+// app/about/page.tsx / app/contact/page.tsx, so nothing changes visually
+// on first migration — every field just becomes admin-editable.
+async function seedAboutPage() {
+  const [{ count }] = await sql`SELECT COUNT(*)::int AS count FROM about_page`;
+  if (count > 0) {
+    console.log("about_page: already configured — skipping seed.");
+    return;
+  }
+  const reasons = [
+    { icon: "ShieldCheckIcon", title: "Licensed, Established Operators", body: "Every cruise we list runs with a licensed Paris operator — not a reseller adding a markup on top." },
+    { icon: "StarIcon", title: "Real Review Volume", body: "We only list cruises with verifiable review counts and ratings, not cherry-picked testimonials." },
+    { icon: "LockIcon", title: "Transparent Pricing", body: "The price you see on the tour card is the price you pay — no hidden fees added at checkout." },
+    { icon: "HeadsetIcon", title: "Honest, Clear Info", body: "We tell you exactly what's included — and what isn't, like dinner, which is only on the dinner cruise." },
+  ];
+  const a = {
+    heroEyebrow: "About Us",
+    heroHeading: "Your Independent Guide to Seine River Cruise Tickets",
+    heroSubheading:
+      "We help travelers book the right Seine River sightseeing or dinner cruise online — curated from licensed Paris operators, explained in plain language.",
+    heroImage: "https://images.unsplash.com/photo-1554144573-91d40c39092a?q=80&w=2000&auto=format&fit=crop",
+    heroImageAlt: "Eiffel Tower and the Seine River with sightseeing boats in Paris",
+    introHeading: "Why We Built a Seine River Cruise Guide",
+    introParagraph1:
+      "We built this site around one belief: a Seine River cruise is one of the best, cheapest things you can do in Paris — but only if you book the right one. Some operators oversell tiny boats, some \"dinner cruises\" cut every corner on the food, and prices for the exact same route can vary by 30% depending on where you book.",
+    introParagraph2:
+      "We're an independent Seine river cruise guide — not an official operator's website. We compare sightseeing cruises, dinner cruises, and evening illuminations cruises from licensed, established Paris operators, currently via GetYourGuide, and point you to the ones worth your time and money.",
+    introImage: "https://images.unsplash.com/photo-1739604977885-545151bef26b?q=80&w=1000&auto=format&fit=crop",
+    introImageAlt: "A river cruise boat gliding past illuminated buildings on the Seine at night",
+    reasonsHeading: "How We Pick Our Seine River Cruises",
+    reasonsSubheading: "Every cruise listed on this site is screened against four criteria before it earns a spot.",
+    disclosureHeading: "A Note on How We Earn",
+    disclosureBody:
+      "When you book a Seine River cruise through a link on this site, we earn a small commission from the operator at no extra cost to you. This is how we keep the site free and independently written — it doesn't affect which cruises we recommend or how we rank them.",
+    ctaText: "Ready to book your Seine River cruise?",
+    ctaButtonLabel: "Compare Seine River Cruises",
+    metaTitle: "About Us | Seine River Cruise Tour & Ticket Booking Guide",
+    metaDescription:
+      "Who curates our Seine River sightseeing and dinner cruises online, how we pick licensed operators, and why a good cruise beats a rushed one.",
+  };
+  await sql`
+    INSERT INTO about_page (
+      id, hero_eyebrow, hero_heading, hero_subheading, hero_image, hero_image_alt,
+      intro_heading, intro_paragraph_1, intro_paragraph_2, intro_image, intro_image_alt,
+      reasons_heading, reasons_subheading, reasons,
+      disclosure_heading, disclosure_body, cta_text, cta_button_label,
+      meta_title, meta_description
+    ) VALUES (
+      1, ${a.heroEyebrow}, ${a.heroHeading}, ${a.heroSubheading}, ${a.heroImage}, ${a.heroImageAlt},
+      ${a.introHeading}, ${a.introParagraph1}, ${a.introParagraph2}, ${a.introImage}, ${a.introImageAlt},
+      ${a.reasonsHeading}, ${a.reasonsSubheading}, ${JSON.stringify(reasons)}::jsonb,
+      ${a.disclosureHeading}, ${a.disclosureBody}, ${a.ctaText}, ${a.ctaButtonLabel},
+      ${a.metaTitle}, ${a.metaDescription}
+    )
+    ON CONFLICT (id) DO NOTHING
+  `;
+  console.log("about_page: seeded with the existing About page copy.");
+}
+
+async function seedContactPage() {
+  const [{ count }] = await sql`SELECT COUNT(*)::int AS count FROM contact_page`;
+  if (count > 0) {
+    console.log("contact_page: already configured — skipping seed.");
+    return;
+  }
+  const reasons = [
+    { icon: "HeadsetIcon", title: "Booking Help", body: "Not sure whether to book the sightseeing cruise, dinner cruise, or evening illuminations cruise? Ask before you book." },
+    { icon: "BriefcaseIcon", title: "Partnerships & Affiliates", body: "Cruise operators, DMCs, and affiliate partners — reach out about listing or collaboration opportunities." },
+    { icon: "MailIcon", title: "General Questions", body: "Site feedback, content corrections, or anything else about Seine River cruises." },
+  ];
+  const c = {
+    heroEyebrow: "Contact",
+    heroHeading: "Get in Touch",
+    heroSubheading:
+      "Questions about a Seine River cruise or ticket — or a partnership inquiry? Reach out directly by email.",
+    email: "livetravelpartner@gmail.com",
+    emailNote: "We typically reply within 1–2 business days.",
+    reasonsHeading: "What we can help with",
+    footerNote:
+      "Already have a booking? Contact the cruise operator directly via your confirmation email — they handle changes and refunds faster than we can.",
+    ctaHeading: "Not booked yet?",
+    ctaButtonLabel: "Compare Seine River Cruises & Tickets",
+    metaTitle: "Contact Us | Seine River Cruise Tours",
+    metaDescription:
+      "Questions about booking a Seine River sightseeing cruise, dinner cruise, or tickets online? Reach out directly — including for partnership and affiliate inquiries.",
+  };
+  await sql`
+    INSERT INTO contact_page (
+      id, hero_eyebrow, hero_heading, hero_subheading, email, email_note,
+      reasons_heading, reasons, footer_note, cta_heading, cta_button_label,
+      meta_title, meta_description
+    ) VALUES (
+      1, ${c.heroEyebrow}, ${c.heroHeading}, ${c.heroSubheading}, ${c.email}, ${c.emailNote},
+      ${c.reasonsHeading}, ${JSON.stringify(reasons)}::jsonb, ${c.footerNote}, ${c.ctaHeading}, ${c.ctaButtonLabel},
+      ${c.metaTitle}, ${c.metaDescription}
+    )
+    ON CONFLICT (id) DO NOTHING
+  `;
+  console.log("contact_page: seeded with the existing Contact page copy.");
 }
 
 // Users are NOT seeded from data/users.json on purpose — that file may
@@ -330,12 +590,16 @@ async function seedSiteSettings() {
 
 async function main() {
   await createTables();
+  await addSeoColumns();
   await seedTours();
   await seedPosts();
   await seedHomepage();
   await seedFaqs();
   await seedPrivacyPolicy();
   await seedSiteSettings();
+  await seedAboutPage();
+  await seedContactPage();
+  await migrateAboutContactNoIndex();
   console.log("\nDone. Your database is ready.");
 }
 

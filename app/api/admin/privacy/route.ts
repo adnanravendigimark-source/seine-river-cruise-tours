@@ -18,13 +18,31 @@ export async function PUT(req: Request) {
   const title = (body?.title || "").trim();
   const content = Array.isArray(body?.content) ? body.content : [];
   const noIndex = !!body?.noIndex;
+  const noFollow = !!body?.noFollow;
+  const canonicalUrl = body?.canonicalUrl || "";
+  const metaTitle = body?.metaTitle || "";
+  const metaDescription = body?.metaDescription || "";
+  const ogTitle = body?.ogTitle || "";
+  const ogDescription = body?.ogDescription || "";
+  const ogImage = body?.ogImage || "";
 
   if (!title) {
     return NextResponse.json({ error: "Title is required." }, { status: 400 });
   }
 
   try {
-    await savePrivacyPolicy({ title, content, noIndex });
+    await savePrivacyPolicy({
+      title,
+      content,
+      noIndex,
+      noFollow,
+      canonicalUrl,
+      metaTitle,
+      metaDescription,
+      ogTitle,
+      ogDescription,
+      ogImage,
+    });
   } catch (err) {
     return NextResponse.json({ error: dbErrorMessage(err) }, { status: 500 });
   }

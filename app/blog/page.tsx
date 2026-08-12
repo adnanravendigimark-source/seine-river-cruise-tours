@@ -2,40 +2,29 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import Breadcrumbs from "@/components/Breadcrumbs";
 import SafeImage from "@/components/SafeImage";
 import { getPosts } from "@/lib/posts";
-import { getPageIndexingSettings } from "@/lib/settings";
-import { resolveRobots } from "@/lib/seo";
+import { getBlogSeoSettings } from "@/lib/settings";
+import { resolveRobots, resolveCanonical, resolveOg } from "@/lib/seo";
 
 // Posts live in /data/posts.json (or Postgres once configured), editable
 // from /admin/posts — render dynamically so new/edited posts show up
 // without a rebuild.
 export const dynamic = "force-dynamic";
 
-const TITLE = "Seine River Cruise Travel Guide & Tips | Blog";
-const DESCRIPTION =
-  "Practical Seine River cruise guides: best time to go, whether the dinner cruise is worth it, and sightseeing vs. dinner cruise — written to help you book the right ticket.";
-
-// Static title/description/OG/keywords kept exactly as before — only
-// `robots` is resolved dynamically now, per the admin-editable toggle at
-// /admin/pages, so this had to move from a static `metadata` export to
-// `generateMetadata`.
+// Every field below comes from the Blog listing page's admin-editable SEO
+// settings (lib/settings.ts, edited at /admin/pages) — nothing is hardcoded.
 export async function generateMetadata(): Promise<Metadata> {
-  const settings = await getPageIndexingSettings();
+  const settings = await getBlogSeoSettings();
+  const og = resolveOg(settings, { title: settings.metaTitle, description: settings.metaDescription });
   return {
-    title: TITLE,
-    description: DESCRIPTION,
-    keywords: [
-      "Seine river cruise travel guide",
-      "Seine river cruise tips",
-      "best time for a Seine river cruise",
-      "is the Seine dinner cruise worth it",
-      "sightseeing cruise vs dinner cruise",
-      "Seine river cruise Paris",
-    ],
-    alternates: { canonical: "/blog" },
-    robots: resolveRobots(settings.blogNoIndex),
-    openGraph: { title: TITLE, description: DESCRIPTION, url: "/blog", type: "website" },
+    title: settings.metaTitle,
+    description: settings.metaDescription,
+    alternates: { canonical: resolveCanonical("/blog", settings.canonicalUrl) },
+    robots: resolveRobots(settings.noIndex, settings.noFollow),
+    openGraph: { title: og.title, description: og.description, url: "/blog", type: "website", images: og.image ? [{ url: og.image }] : undefined },
+    twitter: { card: "summary_large_image", title: og.title, description: og.description, images: og.image ? [og.image] : undefined },
   };
 }
 
@@ -46,6 +35,7 @@ export default async function BlogIndexPage() {
   return (
     <>
       <Header />
+      <Breadcrumbs items={[{ name: "Blog", path: "/blog" }]} />
       <main className="mx-auto max-w-5xl px-4 py-16 sm:px-6 sm:py-20">
         <div className="text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-seine-teal">

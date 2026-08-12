@@ -1,8 +1,8 @@
-// The single place that turns a page's "Search Engine Indexing" toggle
-// (posts.no_index, homepage.no_index, privacy_policy.no_index,
-// site_settings.about_no_index/contact_no_index/blog_no_index — see
-// lib/posts.ts, lib/homepage.ts, lib/legal.ts, lib/settings.ts) into the
-// `robots` metadata value Next.js renders as <meta name="robots">.
+import { SITE_URL } from "./site";
+
+// The single place that turns a page's "Search Engine Indexing" +
+// "Link Following" toggles into the `robots` metadata value Next.js
+// renders as <meta name="robots">.
 //
 // Every public page that has its own per-page toggle must call this and
 // set the result as that page's own `robots` key in its metadata —
@@ -11,6 +11,102 @@
 // silently produce the wrong tag. Pages with no toggle of their own
 // simply don't set `robots` and inherit the root layout's index/follow
 // default.
-export function resolveRobots(pageNoIndex: boolean): { index: boolean; follow: boolean } {
-  return pageNoIndex ? { index: false, follow: false } : { index: true, follow: true };
+//
+// Index and Follow are independent controls (Index ON + Follow OFF is a
+// valid, meaningful combination — e.g. "don't show this page in results,
+// but still count the links on it"). `noFollow` defaults to `noIndex`'s
+// value when not explicitly provided, so older rows that only ever
+// stored a single "no_index" column keep behaving exactly as before.
+export function resolveRobots(
+  noIndex: boolean,
+  noFollow: boolean = noIndex
+): { index: boolean; follow: boolean } {
+  return { index: !noIndex, follow: !noFollow };
+}
+
+// Every page's canonical URL, resolved the same way everywhere: an
+// admin-entered override wins if present (must be a full https:// URL,
+// pasted as-is — same "trust what the admin typed" rule as the
+// GetYourGuide link field); otherwise it's safely derived from the
+// site's own URL + the page's own path, so a canonical always exists
+// even if the admin field is left blank.
+export function resolveCanonical(path: string, override?: string | null): string {
+  const trimmed = (override || "").trim();
+  if (trimmed) return trimmed;
+  const cleanPath = path === "/" ? "" : path;
+  return `${SITE_URL}${cleanPath}`;
+}
+
+// Shared shape for the "Open Graph" / "Twitter/X" admin fields every
+// content type now carries (homepage, posts, privacy policy, about,
+// contact, blog listing). Twitter/X's own crawler already reads Open
+// Graph tags as a fallback when no twitter:* tags are present, so this
+// deliberately does NOT add a second full set of twitter-only fields for
+// the admin to fill in — that would just be duplicate data entry with no
+// real SEO benefit. Instead every page's `twitter` metadata is derived
+// from the same resolved OG title/description/image below.
+export interface OgFields {
+  ogTitle?: string;
+  ogDescription?: string;
+  ogImage?: string;
+}
+
+export function resolveOg(
+  fields: OgFields,
+  fallback: { title: string; description: string; image?: string }
+) {
+  return {
+    title: fields.ogTitle?.trim() || fallback.title,
+    description: fields.ogDescription?.trim() || fallback.description,
+    image: fields.ogImage?.trim() || fallback.image || "",
+  };
+}
+
+// One breadcrumb entry: `name` is what's shown, `path` is site-relative
+// (e.g. "/blog/best-time-to-visit"). The final entry (the current page)
+// should still be included — resolveCanonical/SITE_URL below turns every
+// entry into the absolute URL schema.org's BreadcrumbList requires.
+export interface BreadcrumbItem {
+  name: string;
+  path: string;
+}
+
+export function buildBreadcrumbJsonLd(items: BreadcrumbItem[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((item, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      name: item.name,
+      item: `${SITE_URL}${item.path === "/" ? "" : item.path}`,
+    })),
+  };
+}
+
+// Article structured data for a blog post — eligible for article rich
+// results and helps Google understand publish date/author/section.
+// `authorName` defaults to the site's own brand name since these are
+// single-author-style guides, not a multi-writer publication.
+export function buildArticleJsonLd(article: {
+  headline: string;
+  description: string;
+  image?: string;
+  datePublished: string;
+  url: string;
+  authorName: string;
+  siteName: string;
+}) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: article.headline,
+    description: article.description,
+    ...(article.image ? { image: [article.image] } : {}),
+    datePublished: article.datePublished,
+    dateModified: article.datePublished,
+    author: { "@type": "Organization", name: article.authorName },
+    publisher: { "@type": "Organization", name: article.siteName },
+    mainEntityOfPage: { "@type": "WebPage", "@id": article.url },
+  };
 }

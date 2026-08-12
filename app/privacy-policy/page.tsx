@@ -1,26 +1,27 @@
 import type { Metadata } from "next";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import Breadcrumbs from "@/components/Breadcrumbs";
 import { getPrivacyPolicy } from "@/lib/legal";
-import { resolveRobots } from "@/lib/seo";
+import { resolveRobots, resolveCanonical, resolveOg } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
-const TITLE = "Privacy Policy | Seine River Cruise Tours";
-const DESCRIPTION =
-  "How this independent Seine River cruise and ticket guide handles your information, affiliate links, and cookies.";
-
-// Static title/description/OG kept exactly as before — only `robots` is
-// now resolved dynamically per the admin-editable per-page toggle, so this
-// had to move from a static `metadata` export to `generateMetadata`.
+// Every field below comes from the admin-editable Privacy Policy content
+// (lib/legal.ts, edited at /admin/privacy) — nothing is hardcoded.
 export async function generateMetadata(): Promise<Metadata> {
   const policy = await getPrivacyPolicy();
+  const og = resolveOg(
+    { ogTitle: policy.ogTitle, ogDescription: policy.ogDescription, ogImage: policy.ogImage },
+    { title: policy.metaTitle, description: policy.metaDescription }
+  );
   return {
-    title: TITLE,
-    description: DESCRIPTION,
-    alternates: { canonical: "/privacy-policy" },
-    robots: resolveRobots(policy.noIndex),
-    openGraph: { title: TITLE, description: DESCRIPTION, url: "/privacy-policy" },
+    title: policy.metaTitle,
+    description: policy.metaDescription,
+    alternates: { canonical: resolveCanonical("/privacy-policy", policy.canonicalUrl) },
+    robots: resolveRobots(policy.noIndex, policy.noFollow),
+    openGraph: { title: og.title, description: og.description, url: "/privacy-policy", images: og.image ? [{ url: og.image }] : undefined },
+    twitter: { card: "summary_large_image", title: og.title, description: og.description, images: og.image ? [og.image] : undefined },
   };
 }
 
@@ -30,6 +31,7 @@ export default async function PrivacyPolicyPage() {
   return (
     <>
       <Header />
+      <Breadcrumbs items={[{ name: "Privacy Policy", path: "/privacy-policy" }]} />
       <main className="mx-auto max-w-3xl px-4 py-16 sm:px-6 sm:py-20">
         <h1 className="font-display text-3xl font-bold text-stone-900 sm:text-4xl">{policy.title}</h1>
         {policy.lastUpdated && (

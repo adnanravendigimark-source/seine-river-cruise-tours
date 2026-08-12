@@ -14,12 +14,7 @@ export default async function AdminPrivacyPolicyPage() {
         legal advice — have a lawyer review it before relying on it, especially for GDPR/CCPA.
       </p>
       <div className="mt-8 max-w-3xl">
-        <PrivacyPolicyForm
-          initialTitle={policy.title}
-          initialContent={policy.content}
-          lastUpdated={policy.lastUpdated}
-          initialNoIndex={policy.noIndex}
-        />
+        <PrivacyPolicyForm initial={policy} />
       </div>
     </div>
   );

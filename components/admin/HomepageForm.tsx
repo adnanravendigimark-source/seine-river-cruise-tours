@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import ImageUploadField from "./ImageUploadField";
-import IndexingToggle from "./IndexingToggle";
+import SeoFieldsCard from "./SeoFieldsCard";
 import type { HomepageContent } from "@/lib/homepage";
 
 const inputClass =
@@ -96,7 +96,21 @@ export default function HomepageForm({ initial }: { initial: HomepageContent }) 
         </div>
       </div>
 
-      <IndexingToggle checked={content.noIndex} onChange={(next) => update("noIndex", next)} />
+      <SeoFieldsCard
+        pathHint="/"
+        value={{
+          canonicalUrl: content.canonicalUrl,
+          noIndex: content.noIndex,
+          noFollow: content.noFollow,
+          ogTitle: content.ogTitle,
+          ogDescription: content.ogDescription,
+          ogImage: content.ogImage,
+        }}
+        onChange={(patch) => {
+          setContent((c) => ({ ...c, ...patch }));
+          setSaved(false);
+        }}
+      />
 
       <div className="border-t border-stone-200 pt-5">
         <button

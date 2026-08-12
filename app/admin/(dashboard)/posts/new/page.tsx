@@ -23,6 +23,11 @@ export default async function NewPostPage() {
     recommendedTourAfterBlock: 0,
     content: [],
     noIndex: false,
+    noFollow: false,
+    canonicalUrl: "",
+    ogTitle: "",
+    ogDescription: "",
+    ogImage: "",
   };
 
   return (

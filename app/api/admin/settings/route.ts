@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getPageIndexingSettings, savePageIndexingSettings } from "@/lib/settings";
+import { getBlogSeoSettings, saveBlogSeoSettings } from "@/lib/settings";
 import { dbErrorMessage } from "@/lib/db";
 
 // Force this route to always run as a live serverless function rather than
@@ -11,22 +11,29 @@ export const dynamic = "force-dynamic";
 
 // Access to /admin/pages and /api/admin/settings is gated by the "pages"
 // page-access key in middleware.ts, same pattern as posts/homepage/privacy
-// — no extra in-route auth check needed here.
+// — no extra in-route auth check needed here. About and Contact now have
+// their own dedicated routes (/api/admin/about, /api/admin/contact) — this
+// route only covers the Blog listing page's SEO fields.
 
 export async function GET() {
-  return NextResponse.json(await getPageIndexingSettings());
+  return NextResponse.json(await getBlogSeoSettings());
 }
 
 export async function PUT(req: Request) {
   const body = await req.json().catch(() => null);
   const data = {
-    aboutNoIndex: !!body?.aboutNoIndex,
-    contactNoIndex: !!body?.contactNoIndex,
-    blogNoIndex: !!body?.blogNoIndex,
+    metaTitle: body?.metaTitle || "",
+    metaDescription: body?.metaDescription || "",
+    canonicalUrl: body?.canonicalUrl || "",
+    noIndex: !!body?.noIndex,
+    noFollow: !!body?.noFollow,
+    ogTitle: body?.ogTitle || "",
+    ogDescription: body?.ogDescription || "",
+    ogImage: body?.ogImage || "",
   };
 
   try {
-    await savePageIndexingSettings(data);
+    await saveBlogSeoSettings(data);
   } catch (err) {
     return NextResponse.json({ error: dbErrorMessage(err) }, { status: 500 });
   }

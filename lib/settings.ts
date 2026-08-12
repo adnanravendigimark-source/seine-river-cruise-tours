@@ -1,46 +1,70 @@
 import { sql } from "./db";
 
-// Per-page "Search Engine Indexing" toggle for the handful of public pages
-// that don't have their own CMS-editable row elsewhere. Blog posts, the
-// homepage, and the Privacy Policy each store their own `no_index` column
-// directly on their own table (see lib/posts.ts, lib/homepage.ts,
-// lib/legal.ts) — About, Contact, and the Blog listing don't have a
-// dedicated table, so they share this one singleton settings row instead.
-// Defaults to false (indexable) for all three, same as every other page.
-export interface PageIndexingSettings {
-  aboutNoIndex: boolean;
-  contactNoIndex: boolean;
-  blogNoIndex: boolean;
+// Full SEO fields for the Blog listing page (/blog) — the one remaining
+// public page with no dedicated content table of its own (About and
+// Contact moved to their own tables — see lib/about.ts, lib/contact.ts —
+// once they became fully CMS-editable). Stored as a singleton row on the
+// pre-existing `site_settings` table.
+export interface BlogSeoSettings {
+  metaTitle: string;
+  metaDescription: string;
+  canonicalUrl: string;
+  noIndex: boolean;
+  noFollow: boolean;
+  ogTitle: string;
+  ogDescription: string;
+  ogImage: string;
 }
 
-const DEFAULT_SETTINGS: PageIndexingSettings = {
-  aboutNoIndex: false,
-  contactNoIndex: false,
-  blogNoIndex: false,
+const DEFAULT_SETTINGS: BlogSeoSettings = {
+  metaTitle: "Seine River Cruise Guides & Tips | Seine River Cruise Tours",
+  metaDescription:
+    "Practical guides for a Seine River cruise in Paris — sightseeing vs. dinner cruise, best time to go, and more.",
+  canonicalUrl: "",
+  noIndex: false,
+  noFollow: false,
+  ogTitle: "",
+  ogDescription: "",
+  ogImage: "",
 };
 
-export async function getPageIndexingSettings(): Promise<PageIndexingSettings> {
+export async function getBlogSeoSettings(): Promise<BlogSeoSettings> {
   try {
     const rows = await sql`SELECT * FROM site_settings WHERE id = 1 LIMIT 1`;
     if (!rows.length) return DEFAULT_SETTINGS;
     const row = rows[0] as any;
     return {
-      aboutNoIndex: !!row.about_no_index,
-      contactNoIndex: !!row.contact_no_index,
-      blogNoIndex: !!row.blog_no_index,
+      metaTitle: row.blog_meta_title || DEFAULT_SETTINGS.metaTitle,
+      metaDescription: row.blog_meta_description || DEFAULT_SETTINGS.metaDescription,
+      canonicalUrl: row.blog_canonical_url || "",
+      noIndex: !!row.blog_no_index,
+      noFollow: !!row.blog_no_follow,
+      ogTitle: row.blog_og_title || "",
+      ogDescription: row.blog_og_description || "",
+      ogImage: row.blog_og_image || "",
     };
   } catch {
     return DEFAULT_SETTINGS;
   }
 }
 
-export async function savePageIndexingSettings(data: PageIndexingSettings): Promise<void> {
+export async function saveBlogSeoSettings(data: BlogSeoSettings): Promise<void> {
   await sql`
-    INSERT INTO site_settings (id, about_no_index, contact_no_index, blog_no_index)
-    VALUES (1, ${!!data.aboutNoIndex}, ${!!data.contactNoIndex}, ${!!data.blogNoIndex})
+    INSERT INTO site_settings (
+      id, blog_meta_title, blog_meta_description, blog_canonical_url,
+      blog_no_index, blog_no_follow, blog_og_title, blog_og_description, blog_og_image
+    ) VALUES (
+      1, ${data.metaTitle}, ${data.metaDescription}, ${data.canonicalUrl || ""},
+      ${!!data.noIndex}, ${!!data.noFollow}, ${data.ogTitle || ""}, ${data.ogDescription || ""}, ${data.ogImage || ""}
+    )
     ON CONFLICT (id) DO UPDATE SET
-      about_no_index = EXCLUDED.about_no_index,
-      contact_no_index = EXCLUDED.contact_no_index,
-      blog_no_index = EXCLUDED.blog_no_index
+      blog_meta_title = EXCLUDED.blog_meta_title,
+      blog_meta_description = EXCLUDED.blog_meta_description,
+      blog_canonical_url = EXCLUDED.blog_canonical_url,
+      blog_no_index = EXCLUDED.blog_no_index,
+      blog_no_follow = EXCLUDED.blog_no_follow,
+      blog_og_title = EXCLUDED.blog_og_title,
+      blog_og_description = EXCLUDED.blog_og_description,
+      blog_og_image = EXCLUDED.blog_og_image
   `;
 }

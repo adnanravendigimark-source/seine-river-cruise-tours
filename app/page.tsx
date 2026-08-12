@@ -12,19 +12,28 @@ import FAQSection from "@/components/FAQSection";
 import Footer from "@/components/Footer";
 import { getTours } from "@/lib/data";
 import { getHomepageContent } from "@/lib/homepage";
-import { resolveRobots } from "@/lib/seo";
+import { resolveRobots, resolveCanonical, resolveOg } from "@/lib/seo";
 
 // Content (hero copy, tours, FAQs) lives in /data and is editable from
 // /admin — render dynamically so edits show up without a rebuild.
 export const dynamic = "force-dynamic";
 
-// Only overrides `robots` here — every other metadata field (title,
-// description, OG, Twitter, canonical) is left unset so it's inherited
-// from the root layout as before. See lib/seo.ts for why `robots` can't
-// just be inherited once a page needs its own per-page value.
+// title/description are left unset so they inherit the root layout's
+// defaults — but canonical, robots, and OG are always set here from the
+// homepage's own admin-editable fields (lib/homepage.ts) so an admin
+// override always wins over the layout's hardcoded fallback.
 export async function generateMetadata(): Promise<Metadata> {
   const homepage = await getHomepageContent();
-  return { robots: resolveRobots(homepage.noIndex) };
+  const og = resolveOg(
+    { ogTitle: homepage.ogTitle, ogDescription: homepage.ogDescription, ogImage: homepage.ogImage },
+    { title: homepage.heroHeading, description: homepage.heroSubheading, image: homepage.heroImage }
+  );
+  return {
+    alternates: { canonical: resolveCanonical("/", homepage.canonicalUrl) },
+    robots: resolveRobots(homepage.noIndex, homepage.noFollow),
+    openGraph: { title: og.title, description: og.description, url: "/", images: og.image ? [{ url: og.image }] : undefined },
+    twitter: { card: "summary_large_image", title: og.title, description: og.description, images: og.image ? [og.image] : undefined },
+  };
 }
 
 export default async function HomePage() {

@@ -33,6 +33,13 @@ export interface Post {
   // default) = indexable (index, follow). true = noindex, nofollow. See
   // lib/seo.ts for how this combines with the site-wide toggle.
   noIndex: boolean;
+  // Independent "Link Following" toggle — see lib/seo.ts's resolveRobots.
+  noFollow: boolean;
+  // Blank = auto-generate from SITE_URL + "/blog/{slug}".
+  canonicalUrl: string;
+  ogTitle: string;
+  ogDescription: string;
+  ogImage: string;
 }
 
 function parseContent(value: unknown): ContentBlock[] {
@@ -66,11 +73,24 @@ function rowToPost(row: any): Post {
       row.recommended_tour_after_block === null ? undefined : Number(row.recommended_tour_after_block),
     content: parseContent(row.content),
     noIndex: !!row.no_index,
+    noFollow: !!row.no_follow,
+    canonicalUrl: row.canonical_url || "",
+    ogTitle: row.og_title || "",
+    ogDescription: row.og_description || "",
+    ogImage: row.og_image || "",
   };
 }
 
 function seedPosts(): Post[] {
-  return (postsSeed as any[]).map((p) => ({ ...p, noIndex: !!p.noIndex }));
+  return (postsSeed as any[]).map((p) => ({
+    ...p,
+    noIndex: !!p.noIndex,
+    noFollow: !!p.noFollow,
+    canonicalUrl: p.canonicalUrl || "",
+    ogTitle: p.ogTitle || "",
+    ogDescription: p.ogDescription || "",
+    ogImage: p.ogImage || "",
+  }));
 }
 
 export async function getPosts(): Promise<Post[]> {
@@ -118,12 +138,14 @@ export async function savePosts(posts: Post[]): Promise<void> {
       INSERT INTO posts (
         slug, title, meta_title, meta_description, category, excerpt,
         quick_answer, read_time, date, image, image_alt,
-        recommended_tour_id, recommended_tour_after_block, content, sort_order, no_index
+        recommended_tour_id, recommended_tour_after_block, content, sort_order, no_index,
+        no_follow, canonical_url, og_title, og_description, og_image
       ) VALUES (
         ${p.slug}, ${p.title}, ${p.metaTitle}, ${p.metaDescription}, ${p.category},
         ${p.excerpt}, ${p.quickAnswer}, ${p.readTime}, ${p.date}, ${p.image}, ${p.imageAlt},
         ${p.recommendedTourId || ""}, ${p.recommendedTourAfterBlock ?? null},
-        ${JSON.stringify(p.content || [])}::jsonb, ${i}, ${!!p.noIndex}
+        ${JSON.stringify(p.content || [])}::jsonb, ${i}, ${!!p.noIndex},
+        ${!!p.noFollow}, ${p.canonicalUrl || ""}, ${p.ogTitle || ""}, ${p.ogDescription || ""}, ${p.ogImage || ""}
       )
       ON CONFLICT (slug) DO UPDATE SET
         title = EXCLUDED.title,
@@ -140,7 +162,12 @@ export async function savePosts(posts: Post[]): Promise<void> {
         recommended_tour_after_block = EXCLUDED.recommended_tour_after_block,
         content = EXCLUDED.content,
         sort_order = EXCLUDED.sort_order,
-        no_index = EXCLUDED.no_index
+        no_index = EXCLUDED.no_index,
+        no_follow = EXCLUDED.no_follow,
+        canonical_url = EXCLUDED.canonical_url,
+        og_title = EXCLUDED.og_title,
+        og_description = EXCLUDED.og_description,
+        og_image = EXCLUDED.og_image
     `;
   }
 

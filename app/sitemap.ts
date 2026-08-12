@@ -3,7 +3,9 @@ import { SITE_URL } from "@/lib/site";
 import { getPosts } from "@/lib/posts";
 import { getHomepageContent } from "@/lib/homepage";
 import { getPrivacyPolicy } from "@/lib/legal";
-import { getPageIndexingSettings } from "@/lib/settings";
+import { getBlogSeoSettings } from "@/lib/settings";
+import { getAboutPage } from "@/lib/about";
+import { getContactPage } from "@/lib/contact";
 
 // Served at /sitemap.xml — Google reads this to discover every URL on the
 // site. The static pages are listed directly; blog post slugs are fetched
@@ -20,11 +22,13 @@ import { getPageIndexingSettings } from "@/lib/settings";
 export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [posts, homepage, privacyPolicy, pageSettings] = await Promise.all([
+  const [posts, homepage, privacyPolicy, blogSeo, about, contact] = await Promise.all([
     getPosts(),
     getHomepageContent(),
     getPrivacyPolicy(),
-    getPageIndexingSettings(),
+    getBlogSeoSettings(),
+    getAboutPage(),
+    getContactPage(),
   ]);
 
   const staticPageCandidates: Array<MetadataRoute.Sitemap[number] & { noIndex: boolean }> = [
@@ -40,21 +44,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: new Date(),
       changeFrequency: "monthly" as const,
       priority: 0.7,
-      noIndex: pageSettings.aboutNoIndex,
+      noIndex: about.noIndex,
     },
     {
       url: `${SITE_URL}/blog`,
       lastModified: new Date(),
       changeFrequency: "weekly" as const,
       priority: 0.8,
-      noIndex: pageSettings.blogNoIndex,
+      noIndex: blogSeo.noIndex,
     },
     {
       url: `${SITE_URL}/contact`,
       lastModified: new Date(),
       changeFrequency: "monthly" as const,
       priority: 0.5,
-      noIndex: pageSettings.contactNoIndex,
+      noIndex: contact.noIndex,
     },
     {
       url: `${SITE_URL}/privacy-policy`,

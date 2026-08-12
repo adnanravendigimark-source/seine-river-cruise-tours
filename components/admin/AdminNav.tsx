@@ -12,6 +12,8 @@ import {
   QuestionIcon,
   ShieldIcon,
   GlobeIcon,
+  InfoIcon,
+  MailIcon,
   UsersIcon,
 } from "./icons";
 
@@ -23,7 +25,9 @@ const baseNavItems: { href: string; label: string; icon: typeof GridIcon; pageKe
   { href: "/admin/posts", label: "Blog Posts", icon: DocumentIcon, pageKey: "posts" },
   { href: "/admin/faqs", label: "FAQs", icon: QuestionIcon, pageKey: "faqs" },
   { href: "/admin/privacy", label: "Privacy Policy", icon: ShieldIcon, pageKey: "privacy" },
-  { href: "/admin/pages", label: "About / Contact / Blog SEO", icon: GlobeIcon, pageKey: "pages" },
+  { href: "/admin/about", label: "About Page", icon: InfoIcon, pageKey: "about" },
+  { href: "/admin/contact", label: "Contact Page", icon: MailIcon, pageKey: "contact" },
+  { href: "/admin/pages", label: "Blog Page SEO", icon: GlobeIcon, pageKey: "pages" },
 ];
 
 const usersNavItem = { href: "/admin/users", label: "Users", icon: UsersIcon };
