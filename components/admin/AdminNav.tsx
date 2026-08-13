@@ -16,6 +16,7 @@ import {
   MailIcon,
   SearchIcon,
   UsersIcon,
+  LockIcon,
 } from "./icons";
 
 const baseNavItems: { href: string; label: string; icon: typeof GridIcon; pageKey?: PageKey }[] = [
@@ -36,10 +37,13 @@ const baseNavItems: { href: string; label: string; icon: typeof GridIcon; pageKe
 // section at once; Users manages login credentials).
 const indexingNavItem = { href: "/admin/indexing", label: "Indexing", icon: SearchIcon };
 const usersNavItem = { href: "/admin/users", label: "Users", icon: UsersIcon };
+// Shown to everyone — each user can only change their own password.
+const accountNavItem = { href: "/admin/account", label: "My Account", icon: LockIcon };
 
 function visibleNavItems(isAdmin: boolean, pages: PageKey[]) {
   const items = baseNavItems.filter((item) => !item.pageKey || isAdmin || pages.includes(item.pageKey));
-  return isAdmin ? [...items, indexingNavItem, usersNavItem] : items;
+  const adminItems = isAdmin ? [indexingNavItem, usersNavItem] : [];
+  return [...items, ...adminItems, accountNavItem];
 }
 
 function isActive(pathname: string, href: string) {

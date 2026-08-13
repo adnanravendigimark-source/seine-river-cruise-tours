@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createSessionToken, ADMIN_COOKIE_NAME, type Session } from "@/lib/auth";
 import { verifyUserCredentials } from "@/lib/users";
+import { verifyOwnerPassword } from "@/lib/adminPassword";
 import { PAGE_KEYS } from "@/lib/pageAccess";
 import { DB_ERROR_MESSAGE } from "@/lib/db";
 
@@ -72,22 +73,26 @@ export async function POST(req: Request) {
   }
 
   const rootEmail = process.env.ADMIN_EMAIL;
-  const rootPassword = process.env.ADMIN_PASSWORD;
 
-  if (!rootEmail || !rootPassword) {
+  if (!rootEmail) {
     return NextResponse.json(
-      { error: "Admin credentials are not configured on the server (.env)." },
+      { error: "Admin email is not configured on the server (.env)." },
       { status: 500 }
     );
   }
 
-  // The .env credentials are the always-valid "owner" account (role: admin)
-  // — it can't be deleted and works even if the users table is empty or
-  // unreachable. Everyone else is a user created from /admin/users.
+  // The .env owner account (role: admin) is always valid — can't be deleted
+  // and works even if the users table is empty or unreachable. The password
+  // is verified via verifyOwnerPassword(), which checks a DB-stored hash
+  // first (set when the owner changes their password through /admin/account)
+  // and falls back to the plain-text ADMIN_PASSWORD env var otherwise.
   let session: Session | null = null;
 
-  if (email === rootEmail && password === rootPassword) {
-    session = { email, role: "admin", pages: [...PAGE_KEYS] };
+  if (email.toLowerCase() === rootEmail.toLowerCase()) {
+    const ownerOk = await verifyOwnerPassword(password);
+    if (ownerOk) {
+      session = { email: rootEmail, role: "admin", pages: [...PAGE_KEYS] };
+    }
   } else {
     let user;
     try {
