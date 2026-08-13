@@ -107,6 +107,9 @@ export function buildArticleJsonLd(article: {
   description: string;
   image?: string;
   datePublished: string;
+  // Defaults to datePublished when the post has never been re-saved since
+  // the updatedAt column was added — see lib/posts.ts's rowToPost.
+  dateModified?: string;
   url: string;
   authorName: string;
   siteName: string;
@@ -118,7 +121,7 @@ export function buildArticleJsonLd(article: {
     description: article.description,
     ...(article.image ? { image: [article.image] } : {}),
     datePublished: article.datePublished,
-    dateModified: article.datePublished,
+    dateModified: article.dateModified || article.datePublished,
     author: { "@type": "Organization", name: article.authorName },
     publisher: { "@type": "Organization", name: article.siteName },
     mainEntityOfPage: { "@type": "WebPage", "@id": article.url },

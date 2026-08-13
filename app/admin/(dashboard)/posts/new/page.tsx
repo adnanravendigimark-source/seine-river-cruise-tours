@@ -7,6 +7,7 @@ export const dynamic = "force-dynamic";
 export default async function NewPostPage() {
   const tours = await getTours();
 
+  const today = new Date().toISOString().slice(0, 10);
   const blank: Post = {
     slug: "",
     title: "",
@@ -16,12 +17,18 @@ export default async function NewPostPage() {
     excerpt: "",
     quickAnswer: "",
     readTime: "",
-    date: new Date().toISOString().slice(0, 10),
+    date: today,
+    updatedAt: today,
     image: "",
     imageAlt: "",
     recommendedTourId: tours[0]?.id || "",
     recommendedTourAfterBlock: 0,
     content: [],
+    ctaHeading: "Ready to book?",
+    ctaBody: "Compare cruise prices and tickets on the homepage.",
+    ctaButtonText: "See Price Comparison",
+    ctaButtonHref: "/#prices",
+    focusKeyword: "",
     noIndex: false,
     noFollow: false,
     canonicalUrl: "",

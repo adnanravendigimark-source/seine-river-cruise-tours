@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { getPosts, getPost, savePosts, type Post } from "@/lib/posts";
+import { recordSlugRename } from "@/lib/redirects";
 import { getSession } from "@/lib/session";
 import { dbErrorMessage } from "@/lib/db";
 
@@ -21,13 +23,45 @@ export async function PUT(req: Request, { params }: { params: { slug: string } }
   const posts = await getPosts();
   const idx = posts.findIndex((p) => p.slug === params.slug);
   if (idx === -1) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  posts[idx] = { ...body, slug: params.slug, content: body.content || [] };
+
+  // The editor now allows changing the slug (renaming the post's URL).
+  // Validate + de-dupe exactly like a brand-new post would, just
+  // excluding this post's own current row from the collision check.
+  const nextSlug = (body.slug || params.slug).trim();
+  const renamed = nextSlug !== params.slug;
+  if (renamed) {
+    if (!/^[a-z0-9-]+$/.test(nextSlug)) {
+      return NextResponse.json(
+        { error: "Slug can only contain lowercase letters, numbers, and hyphens." },
+        { status: 400 }
+      );
+    }
+    if (posts.some((p, i) => i !== idx && p.slug === nextSlug)) {
+      return NextResponse.json({ error: "A post with this slug already exists." }, { status: 400 });
+    }
+  }
+
+  posts[idx] = {
+    ...body,
+    slug: nextSlug,
+    content: body.content || [],
+    updatedAt: new Date().toISOString().slice(0, 10),
+  };
   try {
     await savePosts(posts);
+    if (renamed) {
+      await recordSlugRename(params.slug, nextSlug);
+    }
   } catch (err) {
     return NextResponse.json({ error: dbErrorMessage(err) }, { status: 500 });
   }
-  return NextResponse.json({ ok: true });
+
+  revalidatePath("/blog");
+  revalidatePath(`/blog/${params.slug}`);
+  if (renamed) revalidatePath(`/blog/${nextSlug}`);
+  revalidatePath("/sitemap.xml");
+
+  return NextResponse.json({ ok: true, slug: nextSlug });
 }
 
 export async function DELETE(_req: Request, { params }: { params: { slug: string } }) {
@@ -46,5 +80,10 @@ export async function DELETE(_req: Request, { params }: { params: { slug: string
   } catch (err) {
     return NextResponse.json({ error: dbErrorMessage(err) }, { status: 500 });
   }
+
+  revalidatePath("/blog");
+  revalidatePath(`/blog/${params.slug}`);
+  revalidatePath("/sitemap.xml");
+
   return NextResponse.json({ ok: true });
 }

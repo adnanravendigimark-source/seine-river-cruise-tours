@@ -17,11 +17,17 @@ export default function RichTextEditor({
   onChange,
   placeholder,
   minHeight = "8rem",
+  allowedHeadings = [1, 2, 3],
 }: {
   value: string;
   onChange: (html: string) => void;
   placeholder?: string;
   minHeight?: string;
+  // Restricts which heading buttons the toolbar offers — e.g. blog article
+  // body content passes [2, 3] so writers can't accidentally create a
+  // second H1 on the page (the post title is already the one true H1).
+  // Defaults to all three for every other existing use of this editor.
+  allowedHeadings?: (1 | 2 | 3)[];
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [isEmpty, setIsEmpty] = useState(!value);
@@ -53,7 +59,9 @@ export default function RichTextEditor({
   }
 
   function insertLink() {
-    const url = window.prompt("Link URL (https://…)");
+    const url = window.prompt(
+      "Link URL — paste a full https://… address, or a relative path for an internal link (e.g. /blog/other-post)"
+    );
     if (!url) return;
     exec("createLink", url);
   }
@@ -103,11 +111,17 @@ export default function RichTextEditor({
   );
 
   return (
-    <div className="rounded-lg border border-stone-300 focus-within:border-basilica-teal focus-within:ring-1 focus-within:ring-basilica-teal">
+    <div className="rounded-lg border border-stone-300 focus-within:border-seine-teal focus-within:ring-1 focus-within:ring-seine-teal">
       <div className="flex flex-wrap items-center gap-0.5 border-b border-stone-200 bg-stone-50 p-1.5">
-        <ToolbarButton label="H1" title="Heading 1" onClick={() => exec("formatBlock", "<h1>")} />
-        <ToolbarButton label="H2" title="Heading 2" onClick={() => exec("formatBlock", "<h2>")} />
-        <ToolbarButton label="H3" title="Heading 3" onClick={() => exec("formatBlock", "<h3>")} />
+        {allowedHeadings.includes(1) && (
+          <ToolbarButton label="H1" title="Heading 1" onClick={() => exec("formatBlock", "<h1>")} />
+        )}
+        {allowedHeadings.includes(2) && (
+          <ToolbarButton label="H2" title="Heading 2" onClick={() => exec("formatBlock", "<h2>")} />
+        )}
+        {allowedHeadings.includes(3) && (
+          <ToolbarButton label="H3" title="Heading 3" onClick={() => exec("formatBlock", "<h3>")} />
+        )}
         <ToolbarButton label="¶" title="Paragraph" onClick={() => exec("formatBlock", "<p>")} />
         <span className="mx-1 h-4 w-px bg-stone-300" />
         <ToolbarButton label={<span className="font-bold">B</span>} title="Bold" onClick={() => exec("bold")} />

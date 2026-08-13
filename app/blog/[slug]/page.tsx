@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Breadcrumbs from "@/components/Breadcrumbs";
@@ -9,6 +9,7 @@ import BlogPostBody from "@/components/BlogPostBody";
 import BlogSidebar from "@/components/BlogSidebar";
 import SafeImage from "@/components/SafeImage";
 import { getPost } from "@/lib/posts";
+import { getRedirectTarget } from "@/lib/redirects";
 import { resolveRobots, resolveCanonical, resolveOg, buildArticleJsonLd } from "@/lib/seo";
 import { SITE_URL } from "@/lib/site";
 
@@ -47,13 +48,21 @@ export async function generateMetadata({
 
 export default async function Post({ params }: { params: { slug: string } }) {
   const post = await getPost(params.slug);
-  if (!post) notFound();
+  if (!post) {
+    // This slug isn't a live post — but it might be an old address for one
+    // that's since been renamed from the admin. Redirecting instead of a
+    // flat 404 keeps old links and search rankings working.
+    const target = await getRedirectTarget(params.slug);
+    if (target) permanentRedirect(`/blog/${target}`);
+    notFound();
+  }
 
   const articleJsonLd = buildArticleJsonLd({
     headline: post.title,
     description: post.metaDescription,
     image: post.image,
     datePublished: post.date,
+    dateModified: post.updatedAt || post.date,
     url: `${SITE_URL}/blog/${post.slug}`,
     authorName: "Seine River Cruise Tours",
     siteName: "Seine River Cruise Tours",
@@ -97,15 +106,13 @@ export default async function Post({ params }: { params: { slug: string } }) {
             />
 
             <div className="mt-10 rounded-2xl border border-seine-teal/20 bg-seine-teal/5 p-6">
-              <p className="text-sm font-semibold text-stone-900">Ready to book?</p>
-              <p className="mt-1 text-sm text-stone-900/70">
-                Compare cruise prices and tickets on the homepage.
-              </p>
+              <p className="text-sm font-semibold text-stone-900">{post.ctaHeading}</p>
+              <p className="mt-1 text-sm text-stone-900/70">{post.ctaBody}</p>
               <Link
-                href="/#prices"
+                href={post.ctaButtonHref}
                 className="mt-4 inline-flex rounded-full bg-seine-amber px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-seine-amber/90"
               >
-                See Price Comparison
+                {post.ctaButtonText}
               </Link>
             </div>
           </div>

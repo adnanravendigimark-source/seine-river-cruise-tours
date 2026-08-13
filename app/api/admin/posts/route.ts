@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { getPosts, savePosts, type Post } from "@/lib/posts";
 import { dbErrorMessage } from "@/lib/db";
 
@@ -32,11 +33,20 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "A post with this slug already exists." }, { status: 400 });
   }
 
-  posts.push({ ...body, content: body.content || [] });
+  const today = new Date().toISOString().slice(0, 10);
+  posts.push({ ...body, content: body.content || [], updatedAt: today });
   try {
     await savePosts(posts);
   } catch (err) {
     return NextResponse.json({ error: dbErrorMessage(err) }, { status: 500 });
   }
+
+  // Belt-and-suspenders on top of the existing force-dynamic + no-store
+  // setup (middleware.ts) — new posts affect the listing page and the
+  // sitemap immediately, not just their own detail page.
+  revalidatePath("/blog");
+  revalidatePath(`/blog/${body.slug}`);
+  revalidatePath("/sitemap.xml");
+
   return NextResponse.json({ ok: true });
 }
