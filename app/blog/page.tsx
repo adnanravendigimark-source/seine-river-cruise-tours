@@ -77,7 +77,7 @@ export default async function BlogIndexPage() {
               <h2 className="mt-4 font-display text-2xl font-bold text-stone-900 group-hover:text-seine-amber">
                 {featured.title}
               </h2>
-              <p className="mt-3 text-stone-900/70">{featured.excerpt}</p>
+              <p className="mt-3 line-clamp-3 text-stone-900/70">{featured.excerpt}</p>
               <span className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-seine-amber">
                 Read the guide <span className="transition group-hover:translate-x-0.5">→</span>
               </span>
@@ -112,7 +112,7 @@ export default async function BlogIndexPage() {
                 <h2 className="mt-3 font-display text-lg font-semibold text-stone-900 group-hover:text-seine-amber">
                   {post.title}
                 </h2>
-                <p className="mt-2 text-sm text-stone-900/60">{post.excerpt}</p>
+                <p className="mt-2 line-clamp-3 text-sm text-stone-900/60">{post.excerpt}</p>
               </div>
             </Link>
           ))}

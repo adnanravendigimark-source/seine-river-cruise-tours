@@ -43,6 +43,16 @@ function stripHtml(html: string): string {
     .trim();
 }
 
+// Auto-derives the listing-card excerpt straight from the article body
+// instead of making the admin type one out separately — roughly enough
+// text for 3 lines, cut on a word boundary with a trailing "…" so it never
+// looks abruptly chopped off mid-word.
+function excerptFromContent(html: string, maxChars = 200): string {
+  const text = stripHtml(html);
+  if (text.length <= maxChars) return text;
+  return text.slice(0, maxChars).replace(/\s+\S*$/, "") + "…";
+}
+
 function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
     <div>
@@ -109,6 +119,10 @@ export default function PostForm({
 
   const wordCount = useMemo(() => stripHtml(post.content).split(/\s+/).filter(Boolean).length, [post.content]);
 
+  // The listing-card excerpt is no longer a field the admin fills in — it's
+  // always derived fresh from whatever the article body currently says.
+  const autoExcerpt = useMemo(() => excerptFromContent(post.content), [post.content]);
+
   const slugChanged = !isNew && post.slug !== initial.slug;
 
   const focusChecklist = useMemo(() => {
@@ -118,13 +132,13 @@ export default function PostForm({
     return [
       { label: "Appears in the SEO title", pass: (post.metaTitle || post.title).toLowerCase().includes(kw) },
       { label: "Appears in the H1 title", pass: post.title.toLowerCase().includes(kw) },
-      { label: "Appears in the meta description", pass: (post.metaDescription || post.excerpt).toLowerCase().includes(kw) },
+      { label: "Appears in the meta description", pass: (post.metaDescription || autoExcerpt).toLowerCase().includes(kw) },
       { label: "Appears in the URL slug", pass: post.slug.toLowerCase().includes(kw.replace(/\s+/g, "-")) },
       { label: "Appears early in the article", pass: bodyText.slice(0, 300).toLowerCase().includes(kw) },
       { label: "Appears in the hero image alt text", pass: post.imageAlt.toLowerCase().includes(kw) },
       { label: "Article is at least 300 words", pass: wordCount >= 300 },
     ];
-  }, [post.focusKeyword, post.metaTitle, post.title, post.metaDescription, post.excerpt, post.slug, post.content, post.imageAlt, wordCount]);
+  }, [post.focusKeyword, post.metaTitle, post.title, post.metaDescription, autoExcerpt, post.slug, post.content, post.imageAlt, wordCount]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -137,7 +151,7 @@ export default function PostForm({
     const res = await fetch(url, {
       method,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(post),
+      body: JSON.stringify({ ...post, excerpt: autoExcerpt }),
     });
     const data = await res.json().catch(() => ({}));
     setSaving(false);
@@ -288,9 +302,15 @@ export default function PostForm({
             </SectionCard>
 
             <SectionCard title="Summary" description="Shown on the blog listing card and at the top of the article.">
-              <Field label="Excerpt" hint="Shown on the blog listing page's article card.">
-                <textarea required rows={2} value={post.excerpt} onChange={(e) => update("excerpt", e.target.value)} className={inputClass} />
-              </Field>
+              <div>
+                <label className={labelClass}>Excerpt</label>
+                <p className={`${inputClass} min-h-[3.5rem] cursor-default bg-stone-50 text-stone-600`}>
+                  <span className="line-clamp-3">{autoExcerpt || "Start writing the article below and this will fill in automatically."}</span>
+                </p>
+                <p className={hintClass}>
+                  Auto-generated from the article content (3 lines, then "…") — shown on the blog listing card. Nothing to fill in here.
+                </p>
+              </div>
               <Field label="Quick Answer callout" hint='The highlighted "TL;DR" box right under the title.'>
                 <textarea required rows={2} value={post.quickAnswer} onChange={(e) => update("quickAnswer", e.target.value)} className={inputClass} />
               </Field>
@@ -370,13 +390,13 @@ export default function PostForm({
                 <textarea required rows={3} value={post.metaDescription} onChange={(e) => update("metaDescription", e.target.value)} className={inputClass} />
                 <CharCounter length={post.metaDescription.length} min={120} max={158} />
               </Field>
-              <SeoPreview title={post.metaTitle || post.title} description={post.metaDescription || post.excerpt} path={`/blog/${post.slug || "…"}`} />
+              <SeoPreview title={post.metaTitle || post.title} description={post.metaDescription || autoExcerpt} path={`/blog/${post.slug || "…"}`} />
             </SectionCard>
 
             <SectionCard title="Social Share Preview" description="What this looks like when the link is shared on Facebook, WhatsApp, or X.">
               <SocialPreview
                 title={post.ogTitle || post.metaTitle || post.title}
-                description={post.ogDescription || post.metaDescription || post.excerpt}
+                description={post.ogDescription || post.metaDescription || autoExcerpt}
                 image={post.ogImage || post.image}
               />
             </SectionCard>
