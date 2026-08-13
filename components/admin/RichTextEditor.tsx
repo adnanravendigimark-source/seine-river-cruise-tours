@@ -38,6 +38,7 @@ export default function RichTextEditor({
   placeholder,
   minHeight = "8rem",
   allowedHeadings = [1, 2, 3],
+  stickyOffset,
 }: {
   value: string;
   onChange: (html: string) => void;
@@ -48,6 +49,11 @@ export default function RichTextEditor({
   // second H1 on the page (the post title is already the one true H1).
   // Defaults to all three for every other existing use of this editor.
   allowedHeadings?: (1 | 2 | 3)[];
+  // How far from the top of the viewport this editor's own toolbar sticks.
+  // Defaults to flush with the top (0). Pass the height of whatever other
+  // sticky bar sits above this editor on the page (e.g. the blog editor's
+  // sticky tab bar) so the two don't stack on top of each other.
+  stickyOffset?: string;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [isEmpty, setIsEmpty] = useState(!value);
@@ -320,7 +326,10 @@ export default function RichTextEditor({
 
   return (
     <div className="rounded-lg border border-stone-300 focus-within:border-seine-teal focus-within:ring-1 focus-within:ring-seine-teal">
-      <div className="sticky top-0 z-10 flex flex-wrap items-center gap-0.5 rounded-t-lg border-b border-stone-200 bg-stone-50 p-1.5">
+      <div
+        className="sticky z-10 flex flex-wrap items-center gap-0.5 rounded-t-lg border-b border-stone-200 bg-stone-50 p-1.5"
+        style={{ top: stickyOffset || 0 }}
+      >
         {allowedHeadings.includes(1) && (
           <ToolbarButton label="H1" title="Heading 1" onClick={() => applyHeading(1)} />
         )}

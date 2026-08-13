@@ -174,21 +174,36 @@ export default function PostForm({
   return (
     <form onSubmit={handleSubmit} className="pb-24">
       <div className="mx-auto max-w-4xl space-y-5">
-        {/* Tab bar */}
-        <div className="flex flex-wrap gap-1 rounded-2xl border border-stone-200 bg-white p-1.5">
-          {TABS.map((tab) => (
-            <button
-              key={tab.key}
-              type="button"
-              onClick={() => setActiveTab(tab.key)}
-              className={`flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-medium transition ${
-                activeTab === tab.key ? "bg-seine-teal text-white shadow-sm" : "text-stone-600 hover:bg-stone-100"
-              }`}
+        {/* Tab bar — sticky so it (and the "View Post" shortcut) stay
+            reachable while scrolling a long article instead of only
+            living at the very top of the page. */}
+        <div className="sticky top-0 z-20 flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-stone-200 bg-white/95 p-1.5 shadow-sm backdrop-blur">
+          <div className="flex flex-wrap gap-1">
+            {TABS.map((tab) => (
+              <button
+                key={tab.key}
+                type="button"
+                onClick={() => setActiveTab(tab.key)}
+                className={`flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-medium transition ${
+                  activeTab === tab.key ? "bg-seine-teal text-white shadow-sm" : "text-stone-600 hover:bg-stone-100"
+                }`}
+              >
+                <span aria-hidden="true">{tab.icon}</span>
+                {tab.label}
+              </button>
+            ))}
+          </div>
+          {!isNew && (
+            <a
+              href={`/blog/${initial.slug}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Open this post on the live site"
+              className="flex items-center gap-1.5 rounded-xl border border-stone-300 px-3.5 py-2 text-sm font-medium text-stone-600 transition hover:bg-stone-100"
             >
-              <span aria-hidden="true">{tab.icon}</span>
-              {tab.label}
-            </button>
-          ))}
+              View Post ↗
+            </a>
+          )}
         </div>
 
         {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
@@ -291,6 +306,7 @@ export default function PostForm({
                 placeholder="Write the article here… use the toolbar for headings, bold, links, lists, tables, or images."
                 allowedHeadings={[2, 3]}
                 minHeight="26rem"
+                stickyOffset="3rem"
               />
               <p className="text-xs text-stone-500">~{wordCount} words in the article body.</p>
 
