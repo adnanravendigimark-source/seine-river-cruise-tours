@@ -49,18 +49,18 @@ export default function ToastProvider({ children }: { children: React.ReactNode 
   return (
     <ToastContext.Provider value={{ showToast }}>
       {children}
-      <div className="pointer-events-none fixed bottom-5 right-5 z-[100] flex w-full max-w-sm flex-col gap-2">
+      <div className="pointer-events-none fixed top-5 right-5 z-[100] flex w-full max-w-md flex-col gap-3">
         {toasts.map((t) => (
           <div
             key={t.id}
             role="status"
-            className={`pointer-events-auto flex animate-[toast-in_0.2s_ease-out] items-start gap-2.5 rounded-xl border px-4 py-3 text-sm font-medium shadow-lg ${
+            className={`pointer-events-auto flex animate-[toast-in_0.2s_ease-out] items-start gap-3 rounded-xl border px-5 py-4 text-base font-medium shadow-lg ${
               t.type === "success"
                 ? "border-green-200 bg-green-50 text-green-800"
                 : "border-red-200 bg-red-50 text-red-800"
             }`}
           >
-            <span className="mt-0.5 shrink-0">{t.type === "success" ? "✓" : "!"}</span>
+            <span className="mt-0.5 shrink-0 text-lg">{t.type === "success" ? "✓" : "!"}</span>
             <span className="flex-1">{t.message}</span>
             <button
               type="button"
