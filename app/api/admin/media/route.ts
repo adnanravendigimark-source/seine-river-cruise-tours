@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getMediaLibrary, recordMediaUpload } from "@/lib/media";
+import { getMediaUsageMap } from "@/lib/mediaUsage";
 
 // Force this route to always run as a live serverless function rather than
 // get statically optimized at build time — same reasoning as upload/route.ts.
@@ -9,10 +10,14 @@ export const dynamic = "force-dynamic";
 // the "Media Library" tab of every image picker so a previously uploaded
 // or pasted image can be reused instead of re-uploaded. No section-specific
 // pageKey gate in middleware.ts: any authenticated admin/editor can browse
-// and reuse images regardless of which page they're editing.
+// and reuse images regardless of which page they're editing. Each item also
+// carries `usedIn` — every place on the site currently referencing that
+// image URL — so the picker can show whether an image is safe to ignore or
+// still live somewhere.
 export async function GET() {
-  const items = await getMediaLibrary();
-  return NextResponse.json({ items });
+  const [items, usage] = await Promise.all([getMediaLibrary(), getMediaUsageMap()]);
+  const withUsage = items.map((item) => ({ ...item, usedIn: usage[item.url] || [] }));
+  return NextResponse.json({ items: withUsage });
 }
 
 // Records a bare external image URL into the library — the counterpart to

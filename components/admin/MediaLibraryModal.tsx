@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 
 // One row per image ever uploaded through the admin — shape returned by
-// GET /api/admin/media (see lib/media.ts's MediaItem).
+// GET /api/admin/media (see lib/media.ts's MediaItem, plus `usedIn` added by
+// the route from lib/mediaUsage.ts).
 type MediaItem = {
   id: number;
   url: string;
@@ -11,6 +12,7 @@ type MediaItem = {
   contentType: string;
   sizeBytes: number;
   createdAt: string;
+  usedIn: string[];
 };
 
 // The "choose a previously uploaded image" half of every image picker in
@@ -76,23 +78,47 @@ export default function MediaLibraryModal({
           )}
           {items && items.length > 0 && (
             <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5">
-              {items.map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => onSelect(item.url)}
-                  title={item.filename || item.url}
-                  className="group relative aspect-square overflow-hidden rounded-lg border border-stone-200 bg-stone-100 transition hover:border-seine-teal hover:ring-2 hover:ring-seine-teal/40"
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={item.url} alt="" className="h-full w-full object-cover" loading="lazy" />
-                  <span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition group-hover:bg-black/30 group-hover:opacity-100">
-                    <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-stone-900">
-                      Select
+              {items.map((item) => {
+                const used = item.usedIn && item.usedIn.length > 0;
+                const usageLabel = used
+                  ? item.usedIn.length === 1
+                    ? item.usedIn[0]
+                    : `${item.usedIn[0]} +${item.usedIn.length - 1} more`
+                  : "Unused";
+                const tooltip = `${item.filename || item.url}\n${
+                  used ? `Used in: ${item.usedIn.join(", ")}` : "Not currently used anywhere on the site"
+                }`;
+                return (
+                  <div key={item.id} className="flex flex-col gap-1">
+                    <button
+                      type="button"
+                      onClick={() => onSelect(item.url)}
+                      title={tooltip}
+                      className="group relative aspect-square overflow-hidden rounded-lg border border-stone-200 bg-stone-100 transition hover:border-seine-teal hover:ring-2 hover:ring-seine-teal/40"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={item.url} alt="" className="h-full w-full object-cover" loading="lazy" />
+                      <span
+                        className={`absolute right-1.5 top-1.5 h-2 w-2 rounded-full ring-2 ring-white ${
+                          used ? "bg-green-500" : "bg-stone-300"
+                        }`}
+                        aria-hidden="true"
+                      />
+                      <span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition group-hover:bg-black/30 group-hover:opacity-100">
+                        <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-stone-900">
+                          Select
+                        </span>
+                      </span>
+                    </button>
+                    <span
+                      className={`truncate text-[10px] ${used ? "text-green-700" : "text-stone-400"}`}
+                      title={tooltip}
+                    >
+                      {usageLabel}
                     </span>
-                  </span>
-                </button>
-              ))}
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
