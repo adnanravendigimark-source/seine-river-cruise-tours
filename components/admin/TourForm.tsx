@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import ImageUploadField from "./ImageUploadField";
+import { useToast } from "./Toast";
 import type { TourRecord, TourType } from "@/lib/data";
 
 const inputClass =
@@ -17,13 +18,34 @@ export default function TourForm({
   isNew: boolean;
 }) {
   const router = useRouter();
+  const { showToast } = useToast();
   const [tour, setTour] = useState<TourRecord>(initial);
   const [includesText, setIncludesText] = useState(initial.includes.join("\n"));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [dirty, setDirty] = useState(false);
+
+  // Unsaved-change protection: warn before closing the tab or navigating
+  // away with the browser's own back/forward/reload while there's an edit
+  // that was never saved — matches PostForm's guard for the same reason.
+  useEffect(() => {
+    if (!dirty) return;
+    function handler(e: BeforeUnloadEvent) {
+      e.preventDefault();
+      e.returnValue = "";
+    }
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [dirty]);
 
   function update<K extends keyof TourRecord>(key: K, value: TourRecord[K]) {
     setTour((t) => ({ ...t, [key]: value }));
+    setDirty(true);
+  }
+
+  function handleIncludesChange(value: string) {
+    setIncludesText(value);
+    setDirty(true);
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -52,11 +74,20 @@ export default function TourForm({
     setSaving(false);
 
     if (!res.ok) {
-      setError(data.error || "Save failed.");
+      const msg = data.error || "Save failed.";
+      setError(msg);
+      showToast("error", msg);
       return;
     }
+    setDirty(false);
+    showToast("success", isNew ? "Tour created." : "Tour saved.");
     router.push("/admin/tours");
     router.refresh();
+  }
+
+  function handleCancel() {
+    if (dirty && !window.confirm("Discard unsaved changes?")) return;
+    router.push("/admin/tours");
   }
 
   return (
@@ -110,7 +141,7 @@ export default function TourForm({
         <textarea
           rows={4}
           value={includesText}
-          onChange={(e) => setIncludesText(e.target.value)}
+          onChange={(e) => handleIncludesChange(e.target.value)}
           className={inputClass}
         />
       </div>
@@ -253,7 +284,7 @@ export default function TourForm({
         </button>
         <button
           type="button"
-          onClick={() => router.push("/admin/tours")}
+          onClick={handleCancel}
           className="rounded-lg border border-stone-300 px-5 py-2.5 text-sm font-medium text-stone-700 transition hover:bg-stone-50"
         >
           Cancel
