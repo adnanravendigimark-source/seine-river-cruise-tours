@@ -23,7 +23,7 @@ export default async function NewPostPage() {
     imageAlt: "",
     recommendedTourId: tours[0]?.id || "",
     recommendedTourAfterBlock: 0,
-    content: [],
+    content: "",
     ctaHeading: "Ready to book?",
     ctaBody: "Compare cruise prices and tickets on the homepage.",
     ctaButtonText: "See Price Comparison",

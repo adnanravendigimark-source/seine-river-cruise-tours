@@ -100,9 +100,9 @@ export default async function Post({ params }: { params: { slug: string } }) {
             <QuickAnswer>{post.quickAnswer}</QuickAnswer>
 
             <BlogPostBody
-              blocks={post.content}
+              content={post.content}
               recommendedTourId={post.recommendedTourId}
-              recommendedTourAfterBlock={post.recommendedTourAfterBlock}
+              showRecommendedTour={!!post.recommendedTourAfterBlock}
             />
 
             <div className="mt-10 rounded-2xl border border-seine-teal/20 bg-seine-teal/5 p-6">

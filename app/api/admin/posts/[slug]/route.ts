@@ -44,7 +44,7 @@ export async function PUT(req: Request, { params }: { params: { slug: string } }
   posts[idx] = {
     ...body,
     slug: nextSlug,
-    content: body.content || [],
+    content: body.content || "",
     updatedAt: new Date().toISOString().slice(0, 10),
   };
   try {
