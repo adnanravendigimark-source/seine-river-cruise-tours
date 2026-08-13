@@ -97,7 +97,7 @@ export default async function Post() {
           </div>
         </div>
 
-        <div className="mx-auto max-w-6xl px-4 pb-16 pt-10 sm:px-6 lg:grid lg:grid-cols-3 lg:gap-14">
+        <div className="mx-auto max-w-[92rem] px-4 pb-16 pt-10 sm:px-6 lg:grid lg:grid-cols-3 lg:gap-10">
           <div className="lg:col-span-2">
             <TableOfContents items={toc} />
 
@@ -123,7 +123,7 @@ export default async function Post() {
             </div>
           </div>
 
-          <div className="mt-12 lg:mt-0">
+          <div className="mt-12 lg:mt-0 lg:border-l lg:border-stone-200 lg:pl-10">
             <BlogSidebar slug={post.slug} recommendedTourId={post.recommendedTourId} />
           </div>
         </div>
