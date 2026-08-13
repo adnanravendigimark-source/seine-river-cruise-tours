@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { PAGE_KEYS, PAGE_LABELS, type PageKey } from "@/lib/pageAccess";
+import PasswordStrengthField from "./PasswordStrengthField";
 
 const inputClass =
   "w-full rounded-lg border border-stone-300 px-3 py-2 text-sm focus:border-seine-teal focus:outline-none focus:ring-1 focus:ring-seine-teal";
@@ -16,19 +17,42 @@ export default function UserForm() {
   const [pages, setPages] = useState<PageKey[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [pwError, setPwError] = useState("");
 
   function togglePage(key: PageKey) {
     setPages((p) => (p.includes(key) ? p.filter((k) => k !== key) : [...p, key]));
   }
 
+  function validatePw(v: string) {
+    if (v && v.length < 8) {
+      setPwError("Must be at least 8 characters.");
+    } else {
+      setPwError("");
+    }
+  }
+
+  function generatePassword() {
+    const chars = "ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$%";
+    let generated = "";
+    for (let i = 0; i < 14; i++) generated += chars[Math.floor(Math.random() * chars.length)];
+    setPassword(generated);
+    setPwError("");
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setError("");
+
     if (role === "editor" && pages.length === 0) {
       setError("Select at least one page this editor can access.");
       return;
     }
+    if (password.length < 8) {
+      setPwError("Must be at least 8 characters.");
+      return;
+    }
+
     setSaving(true);
-    setError("");
     const res = await fetch("/api/admin/users", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -65,30 +89,28 @@ export default function UserForm() {
           />
         </div>
         <div className="sm:col-span-1">
-          <label className={labelClass}>Password</label>
-          <div className="flex gap-2">
-            <input
-              type="text"
-              required
-              minLength={8}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className={inputClass}
-              placeholder="At least 8 characters"
-            />
+          <div className="mb-1 flex items-center justify-between">
+            <label className={labelClass} style={{ marginBottom: 0 }}>Password</label>
             <button
               type="button"
-              onClick={() => {
-                const chars = "ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
-                let generated = "";
-                for (let i = 0; i < 12; i++) generated += chars[Math.floor(Math.random() * chars.length)];
-                setPassword(generated);
-              }}
-              className="shrink-0 rounded-lg border border-stone-300 px-3 py-2 text-xs font-medium text-stone-600 hover:bg-stone-50"
+              onClick={generatePassword}
+              className="text-xs font-medium text-seine-teal hover:underline"
             >
               Generate
             </button>
           </div>
+          <PasswordStrengthField
+            label=""
+            value={password}
+            onChange={(v) => {
+              setPassword(v);
+              validatePw(v);
+            }}
+            placeholder="At least 8 characters"
+            required
+            showStrength
+            error={pwError}
+          />
         </div>
         <div className="sm:col-span-1">
           <label className={labelClass}>Role</label>
@@ -124,7 +146,7 @@ export default function UserForm() {
 
       <button
         type="submit"
-        disabled={saving}
+        disabled={saving || !!pwError}
         className="rounded-lg bg-seine-amber px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-seine-amber/90 disabled:opacity-60"
       >
         {saving ? "Creating…" : "Create User"}

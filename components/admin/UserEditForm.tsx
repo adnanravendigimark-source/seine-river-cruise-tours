@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { PAGE_KEYS, PAGE_LABELS, type PageKey } from "@/lib/pageAccess";
 import type { SafeUser } from "@/lib/users";
+import PasswordStrengthField from "./PasswordStrengthField";
 
 const inputClass =
   "w-full rounded-lg border border-stone-300 px-3 py-2 text-sm focus:border-seine-teal focus:outline-none focus:ring-1 focus:ring-seine-teal";
@@ -15,23 +16,60 @@ export default function UserEditForm({ user, onCancel }: { user: SafeUser; onCan
   const [role, setRole] = useState<"editor" | "admin">(user.role);
   const [pages, setPages] = useState<PageKey[]>(user.pages);
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
+  const [pwError, setPwError] = useState("");
+  const [confirmError, setConfirmError] = useState("");
 
   function togglePage(key: PageKey) {
     setPages((p) => (p.includes(key) ? p.filter((k) => k !== key) : [...p, key]));
   }
 
+  function validatePw(v: string) {
+    if (v && v.length < 8) {
+      setPwError("Must be at least 8 characters.");
+    } else {
+      setPwError("");
+    }
+    if (confirmPassword && v !== confirmPassword) {
+      setConfirmError("Passwords do not match.");
+    } else if (confirmPassword) {
+      setConfirmError("");
+    }
+  }
+
+  function validateConfirm(v: string) {
+    if (v && v !== password) {
+      setConfirmError("Passwords do not match.");
+    } else {
+      setConfirmError("");
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setError("");
+    setSaved(false);
+
     if (role === "editor" && pages.length === 0) {
       setError("Select at least one page this editor can access.");
       return;
     }
+
+    if (password) {
+      if (password.length < 8) {
+        setPwError("Must be at least 8 characters.");
+        return;
+      }
+      if (password !== confirmPassword) {
+        setConfirmError("Passwords do not match.");
+        return;
+      }
+    }
+
     setSaving(true);
-    setError("");
-    setSaved(false);
     const res = await fetch(`/api/admin/users/${user.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -45,6 +83,7 @@ export default function UserEditForm({ user, onCancel }: { user: SafeUser; onCan
       return;
     }
     setPassword("");
+    setConfirmPassword("");
     setSaved(true);
     router.refresh();
   }
@@ -96,21 +135,50 @@ export default function UserEditForm({ user, onCancel }: { user: SafeUser; onCan
         </div>
       )}
 
-      <div>
-        <label className={labelClass}>Reset password (optional)</label>
-        <input
-          type="text"
+      {/* Password reset section */}
+      <div className="rounded-xl border border-stone-200 bg-stone-50 p-4 space-y-4">
+        <div>
+          <p className="text-sm font-medium text-stone-700">Reset password</p>
+          <p className="text-xs text-stone-500 mt-0.5">Leave both fields blank to keep their current password.</p>
+        </div>
+
+        <PasswordStrengthField
+          id={`edit-pw-${user.id}`}
+          label="New password"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className={inputClass}
-          placeholder="Leave blank to keep their current password"
+          onChange={(v) => {
+            setPassword(v);
+            validatePw(v);
+            if (!v) {
+              setConfirmPassword("");
+              setConfirmError("");
+            }
+          }}
+          placeholder="Leave blank to keep current"
+          showStrength
+          error={pwError}
         />
+
+        {password && (
+          <PasswordStrengthField
+            id={`edit-confirm-pw-${user.id}`}
+            label="Confirm new password"
+            value={confirmPassword}
+            onChange={(v) => {
+              setConfirmPassword(v);
+              validateConfirm(v);
+            }}
+            placeholder="Re-enter new password"
+            showStrength={false}
+            error={confirmError}
+          />
+        )}
       </div>
 
       <div className="flex gap-3 border-t border-stone-200 pt-5">
         <button
           type="submit"
-          disabled={saving}
+          disabled={saving || !!pwError || !!confirmError}
           className="rounded-lg bg-seine-amber px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-seine-amber/90 disabled:opacity-60"
         >
           {saving ? "Saving…" : "Save Changes"}

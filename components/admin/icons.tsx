@@ -152,3 +152,32 @@ export function LogoutIcon({ className = "h-4 w-4" }: IconProps) {
     </svg>
   );
 }
+
+export function LockIcon({ className = "h-5 w-5" }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth={1.7}>
+      <rect x="5" y="11" width="14" height="10" rx="2" />
+      <path d="M8 11V7a4 4 0 1 1 8 0v4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function EyeIcon({ className = "h-4 w-4" }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth={1.7}>
+      <path d="M2 12C4.5 6.5 9 4 12 4s7.5 2.5 10 8c-2.5 5.5-7 8-10 8s-7.5-2.5-10-8Z" strokeLinejoin="round" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+
+export function EyeOffIcon({ className = "h-4 w-4" }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth={1.7}>
+      <path d="M3 3l18 18" strokeLinecap="round" />
+      <path d="M10.5 10.7A3 3 0 0 0 13.3 13.5" strokeLinecap="round" />
+      <path d="M6.9 6.9C4.9 8.3 3.3 10 2 12c2.5 5.5 7 8 10 8 1.6 0 3.3-.5 4.8-1.4" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M17.4 17.4C19.3 15.9 21 13.9 22 12c-2.5-5.5-7-8-10-8-1.2 0-2.5.3-3.7.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
