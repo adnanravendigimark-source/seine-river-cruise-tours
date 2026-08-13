@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import RichTextEditor from "./RichTextEditor";
 import type { FAQ } from "@/lib/data";
 
 const inputClass =
@@ -66,12 +67,12 @@ export default function FaqsForm({ initial }: { initial: FAQ[] }) {
             placeholder="Question"
             className={`${inputClass} mb-2`}
           />
-          <textarea
-            rows={3}
+          <RichTextEditor
             value={faq.answer}
-            onChange={(e) => update(i, "answer", e.target.value)}
+            onChange={(html) => update(i, "answer", html)}
             placeholder="Answer"
-            className={inputClass}
+            minHeight="4rem"
+            allowedHeadings={[]}
           />
         </div>
       ))}

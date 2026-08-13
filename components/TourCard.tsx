@@ -51,9 +51,16 @@ export default function TourCard({
         <h3 className="min-h-[3.25rem] font-display text-base font-semibold leading-snug text-stone-900 line-clamp-2">
           {tour.title}
         </h3>
-        <p className="mt-1.5 line-clamp-2 min-h-[2.5rem] text-sm text-stone-900/60">
-          {tour.description}
-        </p>
+        {/* line-clamp-2 on both the wrapper (covers legacy plain-text
+            descriptions saved before this field became rich text — the
+            text sits directly in this div) and the child selector (covers
+            new descriptions, which the rich text editor always wraps in a
+            <p>, and which -webkit-line-clamp otherwise won't reach through
+            a block-level child). */}
+        <div
+          className="rich-content mt-1.5 line-clamp-2 min-h-[2.5rem] text-sm text-stone-900/60 [&>p]:m-0 [&>p]:line-clamp-2"
+          dangerouslySetInnerHTML={{ __html: tour.description }}
+        />
 
         <div className="mt-3 flex flex-wrap gap-1.5">
           {tour.includes.map((item) => (

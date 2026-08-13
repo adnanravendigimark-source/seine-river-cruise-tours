@@ -44,7 +44,9 @@ export default async function PrivacyPolicyPage() {
               {block.type === "heading" && (
                 <h2 className="font-display text-xl font-semibold text-stone-900">{block.text}</h2>
               )}
-              {block.type === "paragraph" && <p>{block.text}</p>}
+              {block.type === "paragraph" && (
+                <div className="rich-content max-w-none" dangerouslySetInnerHTML={{ __html: block.text || "" }} />
+              )}
               {block.type === "list" && (
                 <ul className="list-disc space-y-2 pl-5">
                   {(block.items || []).map((item, j) => (

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { put } from "@vercel/blob";
+import { recordMediaUpload } from "@/lib/media";
 
 // Force this route to always run as a live serverless function rather than
 // get statically optimized at build time — Next.js can otherwise pre-render
@@ -46,6 +47,18 @@ export async function POST(req: Request) {
     const blob = await put(filename, file, {
       access: "public",
       contentType: file.type,
+    });
+    // Never awaited-and-blocking on failure — the upload itself already
+    // succeeded and the admin is waiting on this response. Recording it in
+    // the Media Library is a permanent, additive log; nothing ever deletes
+    // from Blob storage or this table, so a missed row here (e.g. schema
+    // not migrated yet) only means this one file won't show up for reuse,
+    // not that the upload failed.
+    await recordMediaUpload({
+      url: blob.url,
+      filename: file.name || filename,
+      contentType: file.type,
+      sizeBytes: file.size,
     });
     return NextResponse.json({ url: blob.url });
   } catch (err) {

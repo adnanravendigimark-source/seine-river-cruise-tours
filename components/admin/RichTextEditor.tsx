@@ -2,6 +2,25 @@
 
 import { useEffect, useRef, useState } from "react";
 import RichImageModal from "./RichImageModal";
+import RichLinkModal from "./RichLinkModal";
+
+// Leaves a URL alone if it already has a scheme (https:, mailto:, tel:...),
+// is protocol-relative (//example.com), or is an internal path/anchor
+// (/blog/post, #section) — otherwise prepends "https://" so a link typed as
+// just "example.com" doesn't end up a broken relative link on the page.
+function normalizeUrl(raw: string): string {
+  const url = raw.trim();
+  if (!url) return url;
+  if (/^([a-z][a-z0-9+.-]*:|\/\/|\/|#)/i.test(url)) return url;
+  return `https://${url}`;
+}
+
+// Escapes text going into HTML *content* (as opposed to an attribute value,
+// which the existing alt/url handling already quote-escapes) — used for the
+// image caption so a caption like "Cost < value" can't break the markup.
+function escapeHtml(text: string): string {
+  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
 
 // A dependency-free rich text editor (contentEditable + the browser's
 // built-in document.execCommand) — deliberately not built on an npm rich
@@ -33,10 +52,12 @@ export default function RichTextEditor({
   const ref = useRef<HTMLDivElement>(null);
   const [isEmpty, setIsEmpty] = useState(!value);
   const [imageModalOpen, setImageModalOpen] = useState(false);
-  // The DOM selection is lost the instant focus moves into the image
-  // modal's inputs, so the cursor position has to be captured up front
-  // (at the moment the toolbar button is clicked) and restored right
-  // before the image is actually inserted.
+  const [linkModalOpen, setLinkModalOpen] = useState(false);
+  // The DOM selection is lost the instant focus moves into the image/link
+  // modal's inputs, so the cursor position (and any selected text) has to
+  // be captured up front (at the moment the toolbar button is clicked) and
+  // restored right before the image/link is actually inserted. Shared by
+  // both modals since only one is ever open at a time.
   const savedRangeRef = useRef<Range | null>(null);
 
   // Only set innerHTML once, on mount — re-syncing on every `value` change
@@ -65,14 +86,6 @@ export default function RichTextEditor({
     handleInput();
   }
 
-  function insertLink() {
-    const url = window.prompt(
-      "Link URL — paste a full https://… address, or a relative path for an internal link (e.g. /blog/other-post)"
-    );
-    if (!url) return;
-    exec("createLink", url);
-  }
-
   function captureSelection(): Range | null {
     const sel = window.getSelection();
     if (!sel || sel.rangeCount === 0 || !ref.current) return null;
@@ -81,30 +94,190 @@ export default function RichTextEditor({
     return range.cloneRange();
   }
 
+  // Restores whatever was saved by captureSelection() (or, failing that,
+  // collapses to the end of the content) and returns the live Range so the
+  // caller can insert relative to it. Shared by both the image and link
+  // insert flows, which both need this exact same "get my selection back
+  // after the modal stole focus" step.
+  function restoreSelection(): Range | null {
+    if (!ref.current) return null;
+    ref.current.focus();
+    const sel = window.getSelection();
+    if (!sel) return null;
+    sel.removeAllRanges();
+    let range: Range;
+    if (savedRangeRef.current) {
+      range = savedRangeRef.current;
+    } else {
+      range = document.createRange();
+      range.selectNodeContents(ref.current);
+      range.collapse(false);
+    }
+    sel.addRange(range);
+    return range;
+  }
+
+  function insertLink() {
+    savedRangeRef.current = captureSelection();
+    setLinkModalOpen(true);
+  }
+
+  function handleLinkInsert({
+    url,
+    nofollow,
+    newTab,
+  }: {
+    url: string;
+    nofollow: boolean;
+    newTab: boolean;
+  }) {
+    const range = restoreSelection();
+    if (!range) {
+      setLinkModalOpen(false);
+      return;
+    }
+    const normalized = normalizeUrl(url);
+
+    const anchor = document.createElement("a");
+    anchor.setAttribute("href", normalized);
+    if (newTab) anchor.setAttribute("target", "_blank");
+    // noopener/noreferrer must go alongside target="_blank" so the new tab
+    // can't reach back into this page via window.opener; nofollow rides
+    // along in the same rel attribute when both are set.
+    const relTokens = [
+      ...(nofollow ? ["nofollow"] : []),
+      ...(newTab ? ["noopener", "noreferrer"] : []),
+    ];
+    if (relTokens.length) anchor.setAttribute("rel", relTokens.join(" "));
+
+    if (range.collapsed) {
+      // Nothing was selected — insert the URL itself as the clickable text.
+      anchor.textContent = normalized;
+    } else {
+      anchor.appendChild(range.extractContents());
+    }
+    range.insertNode(anchor);
+
+    range.setStartAfter(anchor);
+    range.collapse(true);
+    const sel = window.getSelection();
+    if (sel) {
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+
+    handleInput();
+    setLinkModalOpen(false);
+  }
+
+  // Clicking H1/H2/H3 with a partial-line selection should turn only the
+  // selected text into a heading — not the whole paragraph, which is what
+  // document.execCommand("formatBlock") always does (it only knows how to
+  // convert an entire block). This splits the current block into up to
+  // three pieces instead: the text before the selection (kept as a
+  // paragraph), the selection itself (the new heading), and the text after
+  // (also kept as a paragraph) — any empty piece is simply omitted.
+  function applyHeading(level: 1 | 2 | 3) {
+    const sel = window.getSelection();
+    const range = sel && sel.rangeCount > 0 ? sel.getRangeAt(0) : null;
+
+    if (!range || range.collapsed || !ref.current || !ref.current.contains(range.commonAncestorContainer)) {
+      // No real text selection (just a cursor) — fall back to the
+      // familiar "convert the whole current block" behavior.
+      exec("formatBlock", `<h${level}>`);
+      return;
+    }
+
+    const startedInTextNode = range.commonAncestorContainer.nodeType === Node.TEXT_NODE;
+    let block: HTMLElement | null = startedInTextNode
+      ? range.commonAncestorContainer.parentElement
+      : (range.commonAncestorContainer as HTMLElement);
+    while (block && block !== ref.current && !/^(P|H1|H2|H3|H4|H5|H6|LI)$/.test(block.tagName)) {
+      block = block.parentElement;
+    }
+
+    // Older content is sometimes stored as bare text with no wrapping <p>
+    // (saved before this editor started wrapping paragraphs), so the
+    // selected text node's parent is the editable root itself rather than
+    // a recognizable block. That's still splittable — treat the whole
+    // root's contents as the one implicit paragraph. But if the selection's
+    // common ancestor was already the root *element* (not a text node),
+    // the selection spans multiple real block children, which is
+    // genuinely ambiguous — fall back rather than guessing there too.
+    const useRootAsBlock = (!block || block === ref.current) && startedInTextNode;
+    if ((!block || block === ref.current) && !useRootAsBlock) {
+      exec("formatBlock", `<h${level}>`);
+      return;
+    }
+    const container: HTMLElement = useRootAsBlock ? ref.current : (block as HTMLElement);
+
+    ref.current.focus();
+
+    const beforeRange = document.createRange();
+    beforeRange.setStart(container, 0);
+    beforeRange.setEnd(range.startContainer, range.startOffset);
+
+    const afterRange = document.createRange();
+    afterRange.setStart(range.endContainer, range.endOffset);
+    afterRange.setEnd(container, container.childNodes.length);
+
+    const beforeFrag = beforeRange.cloneContents();
+    const selectedFrag = range.cloneContents();
+    const afterFrag = afterRange.cloneContents();
+
+    const replacement: HTMLElement[] = [];
+    if (beforeFrag.textContent?.trim()) {
+      const p = document.createElement("p");
+      p.appendChild(beforeFrag);
+      replacement.push(p);
+    }
+    const heading = document.createElement(`h${level}`);
+    heading.appendChild(selectedFrag);
+    replacement.push(heading);
+    if (afterFrag.textContent?.trim()) {
+      const p = document.createElement("p");
+      p.appendChild(afterFrag);
+      replacement.push(p);
+    }
+
+    if (useRootAsBlock) {
+      container.replaceChildren(...replacement);
+    } else {
+      container.replaceWith(...replacement);
+    }
+
+    // Put the cursor at the end of the new heading rather than leaving it
+    // wherever the browser happens to land after a manual DOM swap.
+    const newSel = window.getSelection();
+    if (newSel) {
+      const after = document.createRange();
+      after.selectNodeContents(heading);
+      after.collapse(false);
+      newSel.removeAllRanges();
+      newSel.addRange(after);
+    }
+
+    handleInput();
+  }
+
   function insertImage() {
     savedRangeRef.current = captureSelection();
     setImageModalOpen(true);
   }
 
-  function handleImageInsert({ url, alt }: { url: string; alt: string }) {
-    ref.current?.focus();
-    const sel = window.getSelection();
-    if (sel) {
-      sel.removeAllRanges();
-      if (savedRangeRef.current) {
-        sel.addRange(savedRangeRef.current);
-      } else if (ref.current) {
-        // No captured selection (e.g. the toolbar was clicked before the
-        // editor was ever focused) — fall back to the end of the content.
-        const range = document.createRange();
-        range.selectNodeContents(ref.current);
-        range.collapse(false);
-        sel.addRange(range);
-      }
+  function handleImageInsert({ url, alt, caption }: { url: string; alt: string; caption: string }) {
+    if (!restoreSelection()) {
+      setImageModalOpen(false);
+      return;
     }
     const safeAlt = alt.replace(/"/g, "&quot;");
     const safeUrl = url.replace(/"/g, "&quot;");
-    document.execCommand("insertHTML", false, `<img src="${safeUrl}" alt="${safeAlt}" />`);
+    const imgHtml = `<img src="${safeUrl}" alt="${safeAlt}" />`;
+    const trimmedCaption = caption.trim();
+    const html = trimmedCaption
+      ? `<figure>${imgHtml}<figcaption>${escapeHtml(trimmedCaption)}</figcaption></figure>`
+      : imgHtml;
+    document.execCommand("insertHTML", false, html);
     handleInput();
     setImageModalOpen(false);
   }
@@ -149,13 +322,13 @@ export default function RichTextEditor({
     <div className="rounded-lg border border-stone-300 focus-within:border-seine-teal focus-within:ring-1 focus-within:ring-seine-teal">
       <div className="flex flex-wrap items-center gap-0.5 border-b border-stone-200 bg-stone-50 p-1.5">
         {allowedHeadings.includes(1) && (
-          <ToolbarButton label="H1" title="Heading 1" onClick={() => exec("formatBlock", "<h1>")} />
+          <ToolbarButton label="H1" title="Heading 1" onClick={() => applyHeading(1)} />
         )}
         {allowedHeadings.includes(2) && (
-          <ToolbarButton label="H2" title="Heading 2" onClick={() => exec("formatBlock", "<h2>")} />
+          <ToolbarButton label="H2" title="Heading 2" onClick={() => applyHeading(2)} />
         )}
         {allowedHeadings.includes(3) && (
-          <ToolbarButton label="H3" title="Heading 3" onClick={() => exec("formatBlock", "<h3>")} />
+          <ToolbarButton label="H3" title="Heading 3" onClick={() => applyHeading(3)} />
         )}
         <ToolbarButton label="¶" title="Paragraph" onClick={() => exec("formatBlock", "<p>")} />
         <span className="mx-1 h-4 w-px bg-stone-300" />
@@ -186,6 +359,9 @@ export default function RichTextEditor({
 
       {imageModalOpen && (
         <RichImageModal onInsert={handleImageInsert} onClose={() => setImageModalOpen(false)} />
+      )}
+      {linkModalOpen && (
+        <RichLinkModal onInsert={handleLinkInsert} onClose={() => setLinkModalOpen(false)} />
       )}
     </div>
   );

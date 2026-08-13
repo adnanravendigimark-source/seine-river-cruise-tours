@@ -61,7 +61,10 @@ export default async function AboutPage() {
             <h1 className="mt-4 font-display text-3xl font-bold leading-tight sm:text-5xl">
               {about.heroHeading}
             </h1>
-            <p className="mt-5 text-white/85">{about.heroSubheading}</p>
+            <div
+              className="rich-content rich-content-invert mt-5 text-white/85"
+              dangerouslySetInnerHTML={{ __html: about.heroSubheading }}
+            />
           </div>
         </section>
 
@@ -69,8 +72,8 @@ export default async function AboutPage() {
         <section className="mx-auto grid max-w-6xl gap-10 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:items-center">
           <div>
             <h2 className="font-display text-2xl font-bold text-stone-900">{about.introHeading}</h2>
-            <p className="mt-4 text-stone-900/70">{about.introParagraph1}</p>
-            <p className="mt-4 text-stone-900/70">{about.introParagraph2}</p>
+            <div className="rich-content mt-4 text-stone-900/70" dangerouslySetInnerHTML={{ __html: about.introParagraph1 }} />
+            <div className="rich-content mt-4 text-stone-900/70" dangerouslySetInnerHTML={{ __html: about.introParagraph2 }} />
           </div>
           <div className="relative aspect-[4/3] overflow-hidden rounded-3xl shadow-lg">
             <Image
@@ -87,7 +90,10 @@ export default async function AboutPage() {
         <section className="bg-white py-16">
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
             <h2 className="font-display text-2xl font-bold text-stone-900">{about.reasonsHeading}</h2>
-            <p className="mt-3 max-w-2xl text-stone-900/70">{about.reasonsSubheading}</p>
+            <div
+              className="rich-content mt-3 max-w-2xl text-stone-900/70"
+              dangerouslySetInnerHTML={{ __html: about.reasonsSubheading }}
+            />
             <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {about.reasons.map(({ icon, title, body }) => {
                 const Icon = getIconComponent(icon);
@@ -97,7 +103,10 @@ export default async function AboutPage() {
                       <Icon className="h-5 w-5" />
                     </span>
                     <p className="mt-4 text-sm font-semibold text-stone-900">{title}</p>
-                    <p className="mt-1.5 text-sm text-stone-900/60">{body}</p>
+                    <div
+                      className="rich-content mt-1.5 text-sm text-stone-900/60"
+                      dangerouslySetInnerHTML={{ __html: body }}
+                    />
                   </div>
                 );
               })}
@@ -108,7 +117,10 @@ export default async function AboutPage() {
         {/* Disclosure + CTA */}
         <section className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
           <h2 className="font-display text-xl font-semibold text-stone-900">{about.disclosureHeading}</h2>
-          <p className="mt-3 text-sm text-stone-900/70">{about.disclosureBody}</p>
+          <div
+            className="rich-content mt-3 text-sm text-stone-900/70"
+            dangerouslySetInnerHTML={{ __html: about.disclosureBody }}
+          />
 
           <div className="mt-10 flex flex-col items-start gap-4 rounded-2xl bg-seine-teal/5 p-6 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm font-medium text-stone-900">{about.ctaText}</p>

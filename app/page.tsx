@@ -51,7 +51,10 @@ export default async function HomePage() {
       "@context": "https://schema.org",
       "@type": "Product",
       name: t.title,
-      description: t.description,
+      // t.description is admin-entered rich text (bold/links/lists) —
+      // structured data needs plain text, so tags are stripped here; the
+      // tour card itself renders the real formatted HTML.
+      description: t.description.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim(),
       aggregateRating: {
         "@type": "AggregateRating",
         ratingValue: t.rating,

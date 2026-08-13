@@ -43,7 +43,10 @@ export default async function ContactPage() {
           <h1 className="mt-3 font-display text-3xl font-bold text-stone-900 sm:text-4xl">
             {contact.heroHeading}
           </h1>
-          <p className="mx-auto mt-3 max-w-md text-stone-900/60">{contact.heroSubheading}</p>
+          <div
+            className="rich-content mx-auto mt-3 max-w-md text-stone-900/60"
+            dangerouslySetInnerHTML={{ __html: contact.heroSubheading }}
+          />
         </div>
 
         {/* Primary email card */}
@@ -73,15 +76,19 @@ export default async function ContactPage() {
                   <Icon className="h-5 w-5" />
                 </span>
                 <p className="mt-3 text-sm font-semibold text-stone-900">{title}</p>
-                <p className="mt-1 text-sm text-stone-900/60">{body}</p>
+                <div
+                  className="rich-content mt-1 text-sm text-stone-900/60"
+                  dangerouslySetInnerHTML={{ __html: body }}
+                />
               </div>
             );
           })}
         </div>
 
-        <p className="mt-12 border-t border-stone-900/10 pt-8 text-center text-sm text-stone-900/60">
-          {contact.footerNote}
-        </p>
+        <div
+          className="rich-content mt-12 border-t border-stone-900/10 pt-8 text-center text-sm text-stone-900/60"
+          dangerouslySetInnerHTML={{ __html: contact.footerNote }}
+        />
 
         <div className="mt-10 flex flex-col items-center gap-4 rounded-2xl bg-seine-teal/5 p-8 text-center">
           <p className="font-medium text-stone-900">{contact.ctaHeading}</p>

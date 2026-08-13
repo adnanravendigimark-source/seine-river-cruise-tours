@@ -88,6 +88,18 @@ body {
   border-radius: 0.75rem;
   margin: 0.75em 0;
 }
+.rich-content figure {
+  margin: 0.75em 0;
+}
+.rich-content figure img {
+  margin: 0;
+}
+.rich-content figcaption {
+  margin-top: 0.5em;
+  font-size: 0.85em;
+  color: rgba(36, 31, 26, 0.6);
+  text-align: center;
+}
 .rich-content table {
   width: 100%;
   border-collapse: collapse;
@@ -116,7 +128,8 @@ body {
 .rich-content-invert h2,
 .rich-content-invert h3,
 .rich-content-invert a,
-.rich-content-invert strong {
+.rich-content-invert strong,
+.rich-content-invert figcaption {
   color: inherit;
 }
 

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import IconPicker from "./IconPicker";
 import SeoFieldsCard from "./SeoFieldsCard";
+import RichTextEditor from "./RichTextEditor";
 import type { ContactPageContent, ContactReason } from "@/lib/contact";
 
 const inputClass =
@@ -89,7 +90,7 @@ export default function ContactForm({ initial }: { initial: ContactPageContent }
         </div>
         <div>
           <label className={labelClass}>Subheading</label>
-          <textarea rows={2} value={contact.heroSubheading} onChange={(e) => update("heroSubheading", e.target.value)} className={inputClass} />
+          <RichTextEditor value={contact.heroSubheading} onChange={(html) => update("heroSubheading", html)} minHeight="3rem" allowedHeadings={[]} />
         </div>
       </SectionCard>
 
@@ -128,11 +129,11 @@ export default function ContactForm({ initial }: { initial: ContactPageContent }
                   className={inputClass}
                   placeholder="Card title"
                 />
-                <textarea
-                  rows={2}
+                <RichTextEditor
                   value={reason.body}
-                  onChange={(e) => updateReason(i, { body: e.target.value })}
-                  className={inputClass}
+                  onChange={(html) => updateReason(i, { body: html })}
+                  minHeight="3rem"
+                  allowedHeadings={[]}
                   placeholder="Card body text"
                 />
               </div>
@@ -147,7 +148,7 @@ export default function ContactForm({ initial }: { initial: ContactPageContent }
       <SectionCard title="Footer note & CTA">
         <div>
           <label className={labelClass}>Footer note</label>
-          <textarea rows={2} value={contact.footerNote} onChange={(e) => update("footerNote", e.target.value)} className={inputClass} />
+          <RichTextEditor value={contact.footerNote} onChange={(html) => update("footerNote", html)} minHeight="3rem" allowedHeadings={[]} />
         </div>
         <div className="grid gap-5 sm:grid-cols-2">
           <div>

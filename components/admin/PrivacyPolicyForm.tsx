@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import SeoFieldsCard from "./SeoFieldsCard";
+import RichTextEditor from "./RichTextEditor";
 import type { ContentBlock, ContentBlockType } from "@/lib/posts";
 import type { PrivacyPolicy } from "@/lib/legal";
 
@@ -130,13 +131,21 @@ export default function PrivacyPolicyForm({ initial }: { initial: PrivacyPolicy 
                   placeholder="One list item per line"
                   className={inputClass}
                 />
-              ) : (
+              ) : block.type === "heading" ? (
                 <textarea
-                  rows={block.type === "heading" ? 1 : 4}
+                  rows={1}
                   value={block.text || ""}
                   onChange={(e) => updateBlock(i, { type: block.type, text: e.target.value })}
-                  placeholder={block.type === "heading" ? "Section heading" : "Paragraph text"}
+                  placeholder="Section heading"
                   className={inputClass}
+                />
+              ) : (
+                <RichTextEditor
+                  value={block.text || ""}
+                  onChange={(html) => updateBlock(i, { type: block.type, text: html })}
+                  placeholder="Paragraph text"
+                  minHeight="5rem"
+                  allowedHeadings={[]}
                 />
               )}
             </div>

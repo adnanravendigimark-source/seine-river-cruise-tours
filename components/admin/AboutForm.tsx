@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import ImageUploadField from "./ImageUploadField";
 import IconPicker from "./IconPicker";
 import SeoFieldsCard from "./SeoFieldsCard";
+import RichTextEditor from "./RichTextEditor";
 import type { AboutPageContent, AboutReason } from "@/lib/about";
 
 const inputClass =
@@ -90,7 +91,7 @@ export default function AboutForm({ initial }: { initial: AboutPageContent }) {
         </div>
         <div>
           <label className={labelClass}>Subheading</label>
-          <textarea rows={3} value={about.heroSubheading} onChange={(e) => update("heroSubheading", e.target.value)} className={inputClass} />
+          <RichTextEditor value={about.heroSubheading} onChange={(html) => update("heroSubheading", html)} minHeight="4rem" allowedHeadings={[]} />
         </div>
         <ImageUploadField label="Hero background photo" value={about.heroImage} onChange={(url) => update("heroImage", url)} aspectRatio={16 / 9} />
         <div>
@@ -106,11 +107,11 @@ export default function AboutForm({ initial }: { initial: AboutPageContent }) {
         </div>
         <div>
           <label className={labelClass}>First paragraph</label>
-          <textarea rows={4} value={about.introParagraph1} onChange={(e) => update("introParagraph1", e.target.value)} className={inputClass} />
+          <RichTextEditor value={about.introParagraph1} onChange={(html) => update("introParagraph1", html)} minHeight="6rem" allowedHeadings={[]} />
         </div>
         <div>
           <label className={labelClass}>Second paragraph</label>
-          <textarea rows={4} value={about.introParagraph2} onChange={(e) => update("introParagraph2", e.target.value)} className={inputClass} />
+          <RichTextEditor value={about.introParagraph2} onChange={(html) => update("introParagraph2", html)} minHeight="6rem" allowedHeadings={[]} />
         </div>
         <ImageUploadField label="Section photo" value={about.introImage} onChange={(url) => update("introImage", url)} aspectRatio={4 / 3} />
         <div>
@@ -126,7 +127,7 @@ export default function AboutForm({ initial }: { initial: AboutPageContent }) {
         </div>
         <div>
           <label className={labelClass}>Subheading</label>
-          <textarea rows={2} value={about.reasonsSubheading} onChange={(e) => update("reasonsSubheading", e.target.value)} className={inputClass} />
+          <RichTextEditor value={about.reasonsSubheading} onChange={(html) => update("reasonsSubheading", html)} minHeight="3rem" allowedHeadings={[]} />
         </div>
         <div className="space-y-3">
           {about.reasons.map((reason, i) => (
@@ -145,11 +146,11 @@ export default function AboutForm({ initial }: { initial: AboutPageContent }) {
                   className={inputClass}
                   placeholder="Card title"
                 />
-                <textarea
-                  rows={2}
+                <RichTextEditor
                   value={reason.body}
-                  onChange={(e) => updateReason(i, { body: e.target.value })}
-                  className={inputClass}
+                  onChange={(html) => updateReason(i, { body: html })}
+                  minHeight="3rem"
+                  allowedHeadings={[]}
                   placeholder="Card body text"
                 />
               </div>
@@ -168,7 +169,7 @@ export default function AboutForm({ initial }: { initial: AboutPageContent }) {
         </div>
         <div>
           <label className={labelClass}>Body text</label>
-          <textarea rows={4} value={about.disclosureBody} onChange={(e) => update("disclosureBody", e.target.value)} className={inputClass} />
+          <RichTextEditor value={about.disclosureBody} onChange={(html) => update("disclosureBody", html)} minHeight="6rem" allowedHeadings={[]} />
         </div>
         <div className="grid gap-5 sm:grid-cols-2">
           <div>

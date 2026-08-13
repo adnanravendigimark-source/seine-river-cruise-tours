@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import ImageUploadField from "./ImageUploadField";
+import RichTextEditor from "./RichTextEditor";
 import { useToast } from "./Toast";
 import type { TourRecord, TourType } from "@/lib/data";
 
@@ -127,13 +128,15 @@ export default function TourForm({
 
       <div>
         <label className={labelClass}>Description</label>
-        <textarea
-          required
-          rows={3}
+        <RichTextEditor
           value={tour.description}
-          onChange={(e) => update("description", e.target.value)}
-          className={inputClass}
+          onChange={(html) => update("description", html)}
+          minHeight="4rem"
+          allowedHeadings={[]}
         />
+        <p className="mt-1 text-xs text-stone-500">
+          Shown on the tour card (clamped to 2 lines) — keep it short.
+        </p>
       </div>
 
       <div>

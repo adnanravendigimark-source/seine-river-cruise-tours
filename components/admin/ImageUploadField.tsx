@@ -2,6 +2,8 @@
 
 import { useRef, useState } from "react";
 import CropModal from "./CropModal";
+import MediaLibraryModal from "./MediaLibraryModal";
+import { recordMediaUrl } from "@/lib/mediaClient";
 
 // Reusable image field: paste a URL directly, or upload a file (stored in
 // Vercel Blob by the API route) which fills the URL in automatically.
@@ -28,6 +30,7 @@ export default function ImageUploadField({
   const fileInput = useRef<HTMLInputElement>(null);
   const [pendingFile, setPendingFile] = useState<{ file: File; url: string } | null>(null);
   const [recropSrc, setRecropSrc] = useState<string | null>(null);
+  const [libraryOpen, setLibraryOpen] = useState(false);
 
   async function upload(file: File | Blob, name = "image.jpg") {
     setUploading(true);
@@ -79,6 +82,11 @@ export default function ImageUploadField({
     upload(blob, "cropped.jpg");
   }
 
+  function handleLibrarySelect(url: string) {
+    onChange(url);
+    setLibraryOpen(false);
+  }
+
   return (
     <div>
       <label className="mb-1 block text-sm font-medium text-stone-700">{label}</label>
@@ -87,9 +95,17 @@ export default function ImageUploadField({
           type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
+          onBlur={(e) => recordMediaUrl(e.target.value)}
           placeholder="https://... or upload a file"
           className="w-full rounded-lg border border-stone-300 px-3 py-2 text-sm focus:border-seine-teal focus:outline-none focus:ring-1 focus:ring-seine-teal"
         />
+        <button
+          type="button"
+          onClick={() => setLibraryOpen(true)}
+          className="shrink-0 rounded-lg border border-stone-300 px-3 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-50"
+        >
+          Media Library
+        </button>
         <button
           type="button"
           onClick={() => fileInput.current?.click()}
@@ -156,6 +172,9 @@ export default function ImageUploadField({
           onCancel={() => setRecropSrc(null)}
           onConfirm={handleRecropConfirm}
         />
+      )}
+      {libraryOpen && (
+        <MediaLibraryModal onSelect={handleLibrarySelect} onClose={() => setLibraryOpen(false)} />
       )}
     </div>
   );

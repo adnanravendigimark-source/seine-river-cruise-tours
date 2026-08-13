@@ -2,7 +2,9 @@
 
 import { useRef, useState } from "react";
 import CropModal from "./CropModal";
+import MediaLibraryModal from "./MediaLibraryModal";
 import { useToast } from "./Toast";
+import { recordMediaUrl } from "@/lib/mediaClient";
 
 // The upload/crop device for images inserted inline inside a paragraph's
 // rich text (via RichTextEditor's "Image" toolbar button) — mirrors
@@ -15,17 +17,19 @@ export default function RichImageModal({
   onInsert,
   onClose,
 }: {
-  onInsert: (opts: { url: string; alt: string }) => void;
+  onInsert: (opts: { url: string; alt: string; caption: string }) => void;
   onClose: () => void;
 }) {
   const { showToast } = useToast();
   const [url, setUrl] = useState("");
   const [alt, setAlt] = useState("");
+  const [caption, setCaption] = useState("");
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
   const fileInput = useRef<HTMLInputElement>(null);
   const [pendingFile, setPendingFile] = useState<{ file: File; url: string } | null>(null);
   const [recropSrc, setRecropSrc] = useState<string | null>(null);
+  const [libraryOpen, setLibraryOpen] = useState(false);
 
   async function upload(file: File | Blob, name = "image.jpg") {
     setUploading(true);
@@ -78,12 +82,21 @@ export default function RichImageModal({
     upload(blob, "cropped.jpg");
   }
 
+  function handleLibrarySelect(selectedUrl: string) {
+    setUrl(selectedUrl);
+    setLibraryOpen(false);
+  }
+
   function handleInsert() {
     if (!url) {
       showToast("error", "Add an image first — upload a file or paste a URL.");
       return;
     }
-    onInsert({ url, alt });
+    onInsert({ url, alt, caption });
+    // Uploaded files are already recorded by the upload API — this only
+    // matters for a pasted external URL, but it's harmless (and cheap) to
+    // call for every insert since the library dedupes by URL.
+    recordMediaUrl(url);
     showToast("success", "Image inserted.");
   }
 
@@ -94,7 +107,9 @@ export default function RichImageModal({
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className="text-base font-semibold text-stone-900">Insert image</h3>
-        <p className="mt-1 text-sm text-stone-500">Upload a photo from your device, or paste an image URL.</p>
+        <p className="mt-1 text-sm text-stone-500">
+          Choose from the Media Library, upload a photo from your device, or paste an image URL.
+        </p>
 
         <div className="mt-4 flex flex-col gap-2 sm:flex-row">
           <input
@@ -104,6 +119,13 @@ export default function RichImageModal({
             placeholder="https://... or upload a file"
             className="w-full rounded-lg border border-stone-300 px-3 py-2 text-sm focus:border-seine-teal focus:outline-none focus:ring-1 focus:ring-seine-teal"
           />
+          <button
+            type="button"
+            onClick={() => setLibraryOpen(true)}
+            className="shrink-0 rounded-lg border border-stone-300 px-3 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-50"
+          >
+            Media Library
+          </button>
           <button
             type="button"
             onClick={() => fileInput.current?.click()}
@@ -164,6 +186,17 @@ export default function RichImageModal({
           />
         </div>
 
+        <div className="mt-3">
+          <label className="mb-1 block text-xs font-medium text-stone-700">Caption (optional)</label>
+          <input
+            type="text"
+            value={caption}
+            onChange={(e) => setCaption(e.target.value)}
+            placeholder="Shown under the photo on the page"
+            className="w-full rounded-lg border border-stone-300 px-3 py-2 text-sm focus:border-seine-teal focus:outline-none focus:ring-1 focus:ring-seine-teal"
+          />
+        </div>
+
         <div className="mt-5 flex justify-end gap-2">
           <button
             type="button"
@@ -199,6 +232,9 @@ export default function RichImageModal({
           onCancel={() => setRecropSrc(null)}
           onConfirm={handleRecropConfirm}
         />
+      )}
+      {libraryOpen && (
+        <MediaLibraryModal onSelect={handleLibrarySelect} onClose={() => setLibraryOpen(false)} />
       )}
     </div>
   );
