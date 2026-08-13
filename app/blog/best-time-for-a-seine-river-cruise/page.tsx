@@ -5,12 +5,14 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import QuickAnswer from "@/components/QuickAnswer";
+import TableOfContents from "@/components/TableOfContents";
 import BlogPostBody from "@/components/BlogPostBody";
 import BlogSidebar from "@/components/BlogSidebar";
 import SafeImage from "@/components/SafeImage";
 import { getPost } from "@/lib/posts";
 import { resolveRobots, resolveCanonical, resolveOg, buildArticleJsonLd } from "@/lib/seo";
 import { SITE_URL } from "@/lib/site";
+import { extractTableOfContents } from "@/lib/tableOfContents";
 
 const slug = "best-time-for-a-seine-river-cruise";
 
@@ -61,10 +63,18 @@ export default async function Post() {
     siteName: "Seine River Cruise Tours",
   });
 
+  // Auto-built from the article's own H2/H3 headings — see
+  // lib/tableOfContents.ts. "Quick Answer" is prepended by hand since it's
+  // its own component/field rather than a heading inside `content`.
+  const { toc: headingToc, html: contentHtml } = extractTableOfContents(post.content);
+  const toc = post.quickAnswer.trim()
+    ? [{ id: "quick-answer", text: "Quick Answer", level: 2 as const }, ...headingToc]
+    : headingToc;
+
   return (
     <>
       <Header />
-      <Breadcrumbs items={[{ name: "Blog", path: "/blog" }, { name: post.title, path: `/blog/${slug}` }]} />
+      <Breadcrumbs items={[{ name: "Blog", path: "/blog" }, { name: post.category, path: `/blog/${slug}` }]} />
       <main>
         <div className="mx-auto max-w-4xl px-4 pt-6 sm:px-6">
           <Link href="/blog" className="text-sm font-medium text-seine-teal">← All guides</Link>
@@ -76,6 +86,7 @@ export default async function Post() {
           <h1 className="mt-2 font-display text-3xl font-bold leading-tight text-stone-900 sm:text-4xl">
             {post.title}
           </h1>
+          {post.excerpt && <p className="mt-3 max-w-3xl text-lg text-stone-600">{post.excerpt}</p>}
           <div className="relative mt-8 aspect-[21/9] w-full overflow-hidden rounded-2xl">
             <SafeImage
               src={post.image}
@@ -90,10 +101,12 @@ export default async function Post() {
 
         <div className="mx-auto max-w-6xl px-4 pb-16 pt-10 sm:px-6 lg:grid lg:grid-cols-3 lg:gap-14">
           <div className="lg:col-span-2">
+            <TableOfContents items={toc} />
+
             <QuickAnswer>{post.quickAnswer}</QuickAnswer>
 
             <BlogPostBody
-              content={post.content}
+              content={contentHtml}
               recommendedTourId={post.recommendedTourId}
               showRecommendedTour={!!post.recommendedTourAfterBlock}
             />
