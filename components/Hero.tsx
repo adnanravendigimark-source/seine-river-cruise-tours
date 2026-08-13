@@ -30,7 +30,7 @@ export default async function Hero() {
       </div>
 
       <div className="relative mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
-        <p className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-gold-400 backdrop-blur-sm">
+        <p className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-white backdrop-blur-sm">
           {content.heroBadge}
         </p>
 
