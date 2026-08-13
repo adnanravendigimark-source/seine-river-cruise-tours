@@ -97,8 +97,8 @@ export default async function Post() {
           </div>
         </div>
 
-        <div className="mx-auto max-w-[92rem] px-4 pb-16 pt-10 sm:px-6 lg:grid lg:grid-cols-3 lg:gap-10">
-          <div className="lg:col-span-2">
+        <div className="mx-auto max-w-6xl px-4 pb-16 pt-10 sm:px-6 lg:grid lg:grid-cols-[1fr_20rem] lg:gap-10">
+          <div>
             <TableOfContents items={toc} />
 
             <QuickAnswer>{post.quickAnswer}</QuickAnswer>
