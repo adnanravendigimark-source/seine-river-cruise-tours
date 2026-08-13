@@ -320,7 +320,7 @@ export default function RichTextEditor({
 
   return (
     <div className="rounded-lg border border-stone-300 focus-within:border-seine-teal focus-within:ring-1 focus-within:ring-seine-teal">
-      <div className="flex flex-wrap items-center gap-0.5 border-b border-stone-200 bg-stone-50 p-1.5">
+      <div className="sticky top-0 z-10 flex flex-wrap items-center gap-0.5 rounded-t-lg border-b border-stone-200 bg-stone-50 p-1.5">
         {allowedHeadings.includes(1) && (
           <ToolbarButton label="H1" title="Heading 1" onClick={() => applyHeading(1)} />
         )}
@@ -330,7 +330,7 @@ export default function RichTextEditor({
         {allowedHeadings.includes(3) && (
           <ToolbarButton label="H3" title="Heading 3" onClick={() => applyHeading(3)} />
         )}
-        <ToolbarButton label="¶" title="Paragraph" onClick={() => exec("formatBlock", "<p>")} />
+        <ToolbarButton label="P" title="Paragraph (normal text)" onClick={() => exec("formatBlock", "<p>")} />
         <span className="mx-1 h-4 w-px bg-stone-300" />
         <ToolbarButton label={<span className="font-bold">B</span>} title="Bold" onClick={() => exec("bold")} />
         <ToolbarButton label={<span className="italic">I</span>} title="Italic" onClick={() => exec("italic")} />
