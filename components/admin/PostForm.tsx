@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import ImageUploadField from "./ImageUploadField";
 import RichTextEditor from "./RichTextEditor";
@@ -8,6 +8,8 @@ import SeoFieldsCard from "./SeoFieldsCard";
 import SeoPreview from "./SeoPreview";
 import SocialPreview from "./SocialPreview";
 import CharCounter from "./CharCounter";
+import BlogPostPreview from "./BlogPostPreview";
+import { useToast } from "./Toast";
 import type { Post, ContentBlock, ContentBlockType } from "@/lib/posts";
 import type { Tour } from "@/lib/data";
 import type { PostRedirectRow } from "@/lib/redirects";
@@ -108,6 +110,7 @@ export default function PostForm({
   incomingRedirects?: PostRedirectRow[];
 }) {
   const router = useRouter();
+  const { showToast } = useToast();
   const [post, setPost] = useState<Post>(initial);
   const [activeTab, setActiveTab] = useState<TabKey>("content");
   const [slugTouched, setSlugTouched] = useState(!isNew);
@@ -115,6 +118,26 @@ export default function PostForm({
   const [saved, setSaved] = useState(false);
   const [dirty, setDirty] = useState(false);
   const [error, setError] = useState("");
+  const blockRefs = useRef<Array<HTMLDivElement | null>>([]);
+  const [pendingScrollIndex, setPendingScrollIndex] = useState<number | null>(null);
+  const [highlightIndex, setHighlightIndex] = useState<number | null>(null);
+
+  // Runs after a new block is appended and the DOM has re-rendered — scrolls
+  // it into view and briefly highlights it so it's obvious where the new
+  // section landed, instead of leaving it silently off-screen below the fold.
+  useEffect(() => {
+    if (pendingScrollIndex === null) return;
+    const el = blockRefs.current[pendingScrollIndex];
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      setHighlightIndex(pendingScrollIndex);
+      const t = setTimeout(() => setHighlightIndex(null), 1500);
+      setPendingScrollIndex(null);
+      return () => clearTimeout(t);
+    }
+    setPendingScrollIndex(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingScrollIndex, post.content.length]);
 
   // Unsaved-change protection: warn before closing the tab or navigating
   // away with the browser's own back/forward/reload while there's an
@@ -149,15 +172,27 @@ export default function PostForm({
     update("content", next);
   }
 
+  const blockTypeLabel: Record<ContentBlockType, string> = {
+    heading: "Heading",
+    paragraph: "Rich text section",
+    list: "List",
+    image: "Image block",
+  };
+
   function addBlock(type: ContentBlockType) {
+    const newIndex = post.content.length;
     update("content", [...post.content, emptyBlock(type)]);
+    setPendingScrollIndex(newIndex);
+    showToast("success", `${blockTypeLabel[type]} added.`);
   }
 
   function removeBlock(i: number) {
+    const type = post.content[i]?.type;
     update(
       "content",
       post.content.filter((_, idx) => idx !== i)
     );
+    if (type) showToast("success", `${blockTypeLabel[type]} removed.`);
   }
 
   function moveBlock(i: number, dir: -1 | 1) {
@@ -208,15 +243,19 @@ export default function PostForm({
     setSaving(false);
 
     if (!res.ok) {
-      setError(data.error || "Save failed.");
+      const msg = data.error || "Save failed.";
+      setError(msg);
+      showToast("error", msg);
       return;
     }
     setDirty(false);
     if (isNew) {
+      showToast("success", "Post published.");
       router.push("/admin/posts");
       router.refresh();
     } else {
       setSaved(true);
+      showToast("success", "Saved — live on the site now.");
       // Slug may have changed — the edit URL for this post is now
       // different, so route there instead of just router.refresh()-ing
       // the old (now-redirecting) URL.
@@ -233,7 +272,9 @@ export default function PostForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5 pb-24">
+    <form onSubmit={handleSubmit} className="pb-24">
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_26rem]">
+        <div className="min-w-0 space-y-5">
       {/* Tab bar */}
       <div className="flex flex-wrap gap-1 rounded-2xl border border-stone-200 bg-white p-1.5">
         {TABS.map((tab) => (
@@ -362,7 +403,17 @@ export default function PostForm({
 
             <div className="space-y-3">
               {post.content.map((block, i) => (
-                <div key={i} className="rounded-xl border border-stone-200 bg-stone-50 p-4">
+                <div
+                  key={i}
+                  ref={(el) => {
+                    blockRefs.current[i] = el;
+                  }}
+                  className={`rounded-xl border bg-stone-50 p-4 transition-shadow ${
+                    highlightIndex === i
+                      ? "border-seine-teal ring-2 ring-seine-teal/40"
+                      : "border-stone-200"
+                  }`}
+                >
                   <div className="mb-2 flex items-center justify-between">
                     <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-stone-500 ring-1 ring-stone-200">
                       {i + 1} · {block.type}
@@ -608,6 +659,13 @@ export default function PostForm({
           </SectionCard>
         </div>
       )}
+        </div>
+
+        <div className="xl:sticky xl:top-6 xl:self-start">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-stone-500">Live Preview</p>
+          <BlogPostPreview post={post} tours={tours} />
+        </div>
+      </div>
 
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-stone-200 bg-white/95 px-4 py-3 backdrop-blur sm:pl-[17rem]">
         <div className="mx-auto flex max-w-4xl items-center justify-between gap-3">

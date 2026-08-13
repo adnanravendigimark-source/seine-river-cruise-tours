@@ -170,7 +170,15 @@ export default function CropModal({
     "absolute h-4 w-4 rounded-full border-2 border-white bg-seine-teal shadow touch-none";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+      // Stops clicks anywhere in this modal (dragging the crop box,
+      // clicking "Save crop", etc.) from bubbling up to a parent modal's
+      // own backdrop-click-to-close handler — without this, opening the
+      // cropper from inside RichImageModal would close the whole image
+      // picker the instant you interacted with the crop box or its buttons.
+      onClick={(e) => e.stopPropagation()}
+    >
       <div className="w-full max-w-lg rounded-2xl bg-white p-5 shadow-2xl">
         <h3 className="text-base font-semibold text-stone-900">Adjust crop</h3>
         <p className="mt-1 text-sm text-stone-500">Drag the box to reposition it, drag a corner handle to resize.</p>

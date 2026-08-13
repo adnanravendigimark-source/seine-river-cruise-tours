@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import RichImageModal from "./RichImageModal";
 
 // A dependency-free rich text editor (contentEditable + the browser's
 // built-in document.execCommand) — deliberately not built on an npm rich
@@ -31,6 +32,12 @@ export default function RichTextEditor({
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [isEmpty, setIsEmpty] = useState(!value);
+  const [imageModalOpen, setImageModalOpen] = useState(false);
+  // The DOM selection is lost the instant focus moves into the image
+  // modal's inputs, so the cursor position has to be captured up front
+  // (at the moment the toolbar button is clicked) and restored right
+  // before the image is actually inserted.
+  const savedRangeRef = useRef<Range | null>(null);
 
   // Only set innerHTML once, on mount — re-syncing on every `value` change
   // would reset the cursor position on every keystroke, since typing
@@ -66,12 +73,40 @@ export default function RichTextEditor({
     exec("createLink", url);
   }
 
+  function captureSelection(): Range | null {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0 || !ref.current) return null;
+    const range = sel.getRangeAt(0);
+    if (!ref.current.contains(range.commonAncestorContainer)) return null;
+    return range.cloneRange();
+  }
+
   function insertImage() {
-    const url = window.prompt(
-      "Image URL — upload the image on the Images tab first, then paste its URL here"
-    );
-    if (!url) return;
-    exec("insertImage", url);
+    savedRangeRef.current = captureSelection();
+    setImageModalOpen(true);
+  }
+
+  function handleImageInsert({ url, alt }: { url: string; alt: string }) {
+    ref.current?.focus();
+    const sel = window.getSelection();
+    if (sel) {
+      sel.removeAllRanges();
+      if (savedRangeRef.current) {
+        sel.addRange(savedRangeRef.current);
+      } else if (ref.current) {
+        // No captured selection (e.g. the toolbar was clicked before the
+        // editor was ever focused) — fall back to the end of the content.
+        const range = document.createRange();
+        range.selectNodeContents(ref.current);
+        range.collapse(false);
+        sel.addRange(range);
+      }
+    }
+    const safeAlt = alt.replace(/"/g, "&quot;");
+    const safeUrl = url.replace(/"/g, "&quot;");
+    document.execCommand("insertHTML", false, `<img src="${safeUrl}" alt="${safeAlt}" />`);
+    handleInput();
+    setImageModalOpen(false);
   }
 
   function insertTable() {
@@ -148,6 +183,10 @@ export default function RichTextEditor({
         className="rich-content max-w-none px-3 py-2.5 text-sm text-stone-900 outline-none"
         style={{ minHeight }}
       />
+
+      {imageModalOpen && (
+        <RichImageModal onInsert={handleImageInsert} onClose={() => setImageModalOpen(false)} />
+      )}
     </div>
   );
 }

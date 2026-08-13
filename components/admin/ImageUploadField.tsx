@@ -119,15 +119,24 @@ export default function ImageUploadField({
             alt="Preview"
             className="h-28 min-w-0 flex-1 rounded-lg border border-stone-200 object-cover"
           />
-          {aspectRatio && (
+          <div className="flex shrink-0 flex-col gap-1.5">
+            {aspectRatio && (
+              <button
+                type="button"
+                onClick={() => setRecropSrc(value)}
+                className="whitespace-nowrap rounded-lg border border-stone-300 px-3 py-2 text-xs font-medium text-stone-700 transition hover:bg-stone-50"
+              >
+                Adjust crop
+              </button>
+            )}
             <button
               type="button"
-              onClick={() => setRecropSrc(value)}
-              className="shrink-0 whitespace-nowrap rounded-lg border border-stone-300 px-3 py-2 text-xs font-medium text-stone-700 transition hover:bg-stone-50"
+              onClick={() => onChange("")}
+              className="whitespace-nowrap rounded-lg border border-red-200 px-3 py-2 text-xs font-medium text-red-600 transition hover:bg-red-50"
             >
-              Adjust crop
+              Remove image
             </button>
-          )}
+          </div>
         </div>
       )}
 

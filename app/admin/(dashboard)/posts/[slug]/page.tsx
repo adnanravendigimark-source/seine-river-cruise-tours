@@ -16,7 +16,7 @@ export default async function EditPostPage({ params }: { params: { slug: string 
     <div>
       <h1 className="font-display text-2xl font-bold text-stone-900">Edit Post</h1>
       <p className="mt-1 text-sm text-stone-600">Editing "{post.title}"</p>
-      <div className="mt-8 max-w-3xl">
+      <div className="mt-8 max-w-7xl">
         <PostForm initial={post} isNew={false} tours={tours} incomingRedirects={incomingRedirects} />
       </div>
     </div>
