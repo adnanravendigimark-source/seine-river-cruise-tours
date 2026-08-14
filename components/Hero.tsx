@@ -1,5 +1,6 @@
 import Image from "next/image";
 import SafeImage from "./SafeImage";
+import StarRating from "./StarRating";
 import { getHomepageContent } from "@/lib/homepage";
 
 // The hero headline/subhead/badge/rating/photo/gallery/buttons are all
@@ -59,10 +60,12 @@ export default async function Hero() {
 
           {/* Floating glass rating card */}
           <div className="ml-auto flex items-center gap-3 rounded-2xl border border-white/15 bg-white/10 px-4 py-3 backdrop-blur-md">
-            <span className="text-2xl text-gold-400">★</span>
             <div className="text-left leading-tight">
-              <p className="text-sm font-bold">{content.ratingValue}</p>
-              <p className="text-xs text-white/70">{content.ratingCount}</p>
+              <div className="flex items-center gap-2">
+                <StarRating rating={parseFloat(content.ratingValue) || 4.5} size="sm" theme="dark" />
+                <span className="text-sm font-bold text-white">{content.ratingValue}</span>
+              </div>
+              <p className="mt-1 text-xs text-white/70">{content.ratingCount}</p>
             </div>
           </div>
         </div>

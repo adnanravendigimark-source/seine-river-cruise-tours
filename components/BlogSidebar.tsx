@@ -1,5 +1,6 @@
 import Link from "next/link";
 import SafeImage from "./SafeImage";
+import StarRating from "./StarRating";
 import { getTours } from "@/lib/data";
 import { getRelatedPosts } from "@/lib/posts";
 
@@ -29,8 +30,7 @@ export default async function BlogSidebar({
               {tour.title}
             </p>
             <div className="mt-1.5 flex items-center gap-1.5 text-xs text-stone-900/60">
-              <span className="text-gold-500">★</span>
-              {tour.rating.toFixed(1)} ({tour.reviews.toLocaleString()})
+              <StarRating rating={tour.rating} showValue reviewCount={tour.reviews} size="xs" />
             </div>
             <div className="mt-4 flex items-center justify-between border-t border-stone-900/10 pt-4">
               <div>

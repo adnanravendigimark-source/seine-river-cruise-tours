@@ -1,4 +1,5 @@
 import SafeImage from "./SafeImage";
+import StarRating from "./StarRating";
 import { getTours } from "@/lib/data";
 import { getHomepageContent } from "@/lib/homepage";
 
@@ -24,9 +25,7 @@ export default async function FeaturedTour() {
         <div className="min-w-0 flex-1">
           <p className="truncate text-[13px] font-semibold leading-tight text-stone-900">{tour.title}</p>
           <div className="mt-0.5 flex items-center gap-2 text-[11px] text-stone-500">
-            <span className="inline-flex items-center gap-0.5">
-              <span className="text-gold-500">★</span> {tour.rating.toFixed(1)}
-            </span>
+            <StarRating rating={tour.rating} showValue size="xs" />
             <span>·</span>
             <span>
               from <span className="font-semibold text-stone-900">€{tour.price}</span>
