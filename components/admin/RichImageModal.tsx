@@ -6,24 +6,31 @@ import MediaLibraryModal from "./MediaLibraryModal";
 import { useToast } from "./Toast";
 import { recordMediaUrl } from "@/lib/mediaClient";
 
-// The upload/crop device for images inserted inline inside a paragraph's
-// rich text (via RichTextEditor's "Image" toolbar button) — mirrors
-// ImageUploadField's upload-or-paste-a-URL UI plus the same WhatsApp-style
-// crop step, instead of a bare window.prompt() asking for a pre-uploaded
-// URL. Kept as its own component (rather than reusing ImageUploadField
-// directly) because this is a one-shot "pick, then insert" flow with its
-// own Insert/Cancel actions, not a field bound to a single persistent value.
+export interface ImageModalData {
+  url: string;
+  alt: string;
+  caption: string;
+}
+
+// The upload/crop/edit device for images inserted inline inside rich text.
+// Supports both inserting new images and editing existing images (alt text, caption, URL, crop, delete).
 export default function RichImageModal({
+  initialValues,
+  isEditing = false,
   onInsert,
+  onDelete,
   onClose,
 }: {
-  onInsert: (opts: { url: string; alt: string; caption: string }) => void;
+  initialValues?: ImageModalData;
+  isEditing?: boolean;
+  onInsert: (opts: ImageModalData) => void;
+  onDelete?: () => void;
   onClose: () => void;
 }) {
   const { showToast } = useToast();
-  const [url, setUrl] = useState("");
-  const [alt, setAlt] = useState("");
-  const [caption, setCaption] = useState("");
+  const [url, setUrl] = useState(initialValues?.url || "");
+  const [alt, setAlt] = useState(initialValues?.alt || "");
+  const [caption, setCaption] = useState(initialValues?.caption || "");
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
   const fileInput = useRef<HTMLInputElement>(null);
@@ -87,17 +94,14 @@ export default function RichImageModal({
     setLibraryOpen(false);
   }
 
-  function handleInsert() {
+  function handleSave() {
     if (!url) {
       showToast("error", "Add an image first — upload a file or paste a URL.");
       return;
     }
     onInsert({ url, alt, caption });
-    // Uploaded files are already recorded by the upload API — this only
-    // matters for a pasted external URL, but it's harmless (and cheap) to
-    // call for every insert since the library dedupes by URL.
     recordMediaUrl(url);
-    showToast("success", "Image inserted.");
+    showToast("success", isEditing ? "Image updated." : "Image inserted.");
   }
 
   return (
@@ -106,9 +110,20 @@ export default function RichImageModal({
         className="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 className="text-base font-semibold text-stone-900">Insert image</h3>
+        <div className="flex items-center justify-between">
+          <h3 className="text-base font-semibold text-stone-900">
+            {isEditing ? "Edit Image Details" : "Insert image"}
+          </h3>
+          {isEditing && (
+            <span className="rounded-full bg-seine-teal/10 px-2.5 py-0.5 text-xs font-semibold text-seine-teal">
+              Editing Image
+            </span>
+          )}
+        </div>
         <p className="mt-1 text-sm text-stone-500">
-          Choose from the Media Library, upload a photo from your device, or paste an image URL.
+          {isEditing
+            ? "Update the alt text (for SEO), caption, or replace the photo."
+            : "Choose from the Media Library, upload a photo from your device, or paste an image URL."}
         </p>
 
         <div className="mt-4 flex flex-col gap-2 sm:flex-row">
@@ -169,50 +184,68 @@ export default function RichImageModal({
                 onClick={() => setUrl("")}
                 className="whitespace-nowrap rounded-lg border border-red-200 px-3 py-2 text-xs font-medium text-red-600 transition hover:bg-red-50"
               >
-                Remove image
+                Change photo
               </button>
             </div>
           </div>
         )}
 
         <div className="mt-3">
-          <label className="mb-1 block text-xs font-medium text-stone-700">Alt text (optional)</label>
+          <label className="mb-1 block text-xs font-medium text-stone-700">
+            Alt text <span className="text-stone-400">(important for SEO &amp; Google Images)</span>
+          </label>
           <input
             type="text"
             value={alt}
             onChange={(e) => setAlt(e.target.value)}
-            placeholder="Describe the photo for screen readers and Google Images"
+            placeholder="Describe what is shown in the image (e.g. Seine River dinner cruise near Eiffel Tower)"
             className="w-full rounded-lg border border-stone-300 px-3 py-2 text-sm focus:border-seine-teal focus:outline-none focus:ring-1 focus:ring-seine-teal"
           />
         </div>
 
         <div className="mt-3">
-          <label className="mb-1 block text-xs font-medium text-stone-700">Caption (optional)</label>
+          <label className="mb-1 block text-xs font-medium text-stone-700">
+            Caption <span className="text-stone-400">(optional, displayed under the image)</span>
+          </label>
           <input
             type="text"
             value={caption}
             onChange={(e) => setCaption(e.target.value)}
-            placeholder="Shown under the photo on the page"
+            placeholder="Shown under the photo on the article"
             className="w-full rounded-lg border border-stone-300 px-3 py-2 text-sm focus:border-seine-teal focus:outline-none focus:ring-1 focus:ring-seine-teal"
           />
         </div>
 
-        <div className="mt-5 flex justify-end gap-2">
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-lg border border-stone-300 px-4 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-50"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={handleInsert}
-            disabled={!url || uploading}
-            className="rounded-lg bg-seine-teal px-4 py-2 text-sm font-semibold text-white transition hover:bg-seine-teal/90 disabled:opacity-60"
-          >
-            Insert image
-          </button>
+        <div className="mt-5 flex items-center justify-between gap-2">
+          {isEditing && onDelete ? (
+            <button
+              type="button"
+              onClick={onDelete}
+              className="rounded-lg border border-red-200 px-3.5 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50"
+            >
+              Remove from Article
+            </button>
+          ) : (
+            <div />
+          )}
+
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-lg border border-stone-300 px-4 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={!url || uploading}
+              className="rounded-lg bg-seine-teal px-4 py-2 text-sm font-semibold text-white transition hover:bg-seine-teal/90 disabled:opacity-60"
+            >
+              {isEditing ? "Save changes" : "Insert image"}
+            </button>
+          </div>
         </div>
       </div>
 

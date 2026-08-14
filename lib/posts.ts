@@ -214,9 +214,10 @@ export async function setPostIndexing(slug: string, noIndex: boolean, noFollow: 
   await sql`UPDATE posts SET no_index = ${!!noIndex}, no_follow = ${!!noFollow} WHERE slug = ${slug}`;
 }
 
-export async function getRelatedPosts(slug: string, count = 2): Promise<Post[]> {
+export async function getRelatedPosts(slug: string, count?: number): Promise<Post[]> {
   const posts = await getPosts();
-  return posts.filter((p) => p.slug !== slug).slice(0, count);
+  const filtered = posts.filter((p) => p.slug !== slug);
+  return typeof count === "number" ? filtered.slice(0, count) : filtered;
 }
 
 // Replaces the full post list with exactly the given records — upserts

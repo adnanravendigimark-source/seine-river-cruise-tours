@@ -13,7 +13,7 @@ export default async function BlogSidebar({
 }) {
   const tours = await getTours();
   const tour = tours.find((t) => t.id === recommendedTourId);
-  const related = await getRelatedPosts(slug, 3);
+  const related = await getRelatedPosts(slug);
 
   return (
     <aside className="space-y-8 lg:sticky lg:top-24 lg:self-start">

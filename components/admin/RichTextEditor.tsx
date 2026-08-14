@@ -1,13 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import RichImageModal from "./RichImageModal";
+import { useEffect, useRef, useState, useCallback } from "react";
+import RichImageModal, { ImageModalData } from "./RichImageModal";
 import RichLinkModal from "./RichLinkModal";
 
-// Leaves a URL alone if it already has a scheme (https:, mailto:, tel:...),
-// is protocol-relative (//example.com), or is an internal path/anchor
-// (/blog/post, #section) — otherwise prepends "https://" so a link typed as
-// just "example.com" doesn't end up a broken relative link on the page.
 function normalizeUrl(raw: string): string {
   const url = raw.trim();
   if (!url) return url;
@@ -15,23 +11,237 @@ function normalizeUrl(raw: string): string {
   return `https://${url}`;
 }
 
-// Escapes text going into HTML *content* (as opposed to an attribute value,
-// which the existing alt/url handling already quote-escapes) — used for the
-// image caption so a caption like "Cost < value" can't break the markup.
 function escapeHtml(text: string): string {
   return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
-// A dependency-free rich text editor (contentEditable + the browser's
-// built-in document.execCommand) — deliberately not built on an npm rich
-// text library, so it works with zero new install steps for whoever
-// deploys this. Supports the exact toolset asked for: H1–H3, bold,
-// italic, bullet/numbered lists, links, images, and tables. Output is
-// stored as an HTML string (same shape as everything else in
-// HomepageContent) and rendered on the public site inside a
-// `.rich-content` wrapper (see globals.css) via dangerouslySetInnerHTML —
-// safe here because only authenticated admins can ever write to it, the
-// same trust boundary as the JSON-LD scripts already rendered elsewhere.
+/**
+ * Converts Markdown text (like ChatGPT copy output or standard markdown) into clean semantic HTML.
+ */
+function markdownToHtml(markdown: string, allowedHeadings: (1 | 2 | 3)[]): string {
+  const lines = markdown.split(/\r?\n/);
+  const htmlParts: string[] = [];
+  let inList: "ul" | "ol" | null = null;
+  let inBlockquote = false;
+  let inTable = false;
+  let tableRows: string[] = [];
+
+  function closeList() {
+    if (inList) {
+      htmlParts.push(`</${inList}>`);
+      inList = null;
+    }
+  }
+
+  function closeBlockquote() {
+    if (inBlockquote) {
+      htmlParts.push(`</blockquote>`);
+      inBlockquote = false;
+    }
+  }
+
+  function closeTable() {
+    if (inTable && tableRows.length > 0) {
+      const isHeader = (row: string) => /^\s*\|?\s*:?-+:?\s*(\|?\s*:?-+:?\s*)+\|?\s*$/.test(row);
+      const rowsHtml: string[] = [];
+      let headerDone = false;
+
+      for (let i = 0; i < tableRows.length; i++) {
+        const row = tableRows[i];
+        if (isHeader(row)) {
+          headerDone = true;
+          continue;
+        }
+        const cells = row
+          .split("|")
+          .map((c) => c.trim())
+          .filter((_, idx, arr) => (idx === 0 && arr[0] === "" ? false : idx === arr.length - 1 && arr[arr.length - 1] === "" ? false : true));
+
+        const tag = !headerDone && i === 0 ? "th" : "td";
+        const rowContent = cells
+          .map(
+            (cell) =>
+              `<${tag} style="border:1px solid #d6d3d1;padding:8px 12px;text-align:left;">${formatInlineMarkdown(
+                cell
+              )}</${tag}>`
+          )
+          .join("");
+        rowsHtml.push(`<tr>${rowContent}</tr>`);
+      }
+
+      htmlParts.push(
+        `<table style="border-collapse:collapse;width:100%;margin:1.5rem 0;"><tbody>${rowsHtml.join(
+          ""
+        )}</tbody></table>`
+      );
+      tableRows = [];
+      inTable = false;
+    }
+  }
+
+  function formatInlineMarkdown(text: string): string {
+    return text
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      // Bold + Italic
+      .replace(/\*\*\*(.*?)\*\*\*/g, "<strong><em>$1</em></strong>")
+      .replace(/___(.*?)___/g, "<strong><em>$1</em></strong>")
+      // Bold
+      .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+      .replace(/__(.*?)__/g, "<strong>$1</strong>")
+      // Italic
+      .replace(/\*(.*?)\*/g, "<em>$1</em>")
+      .replace(/_(.*?)_/g, "<em>$1</em>")
+      // Inline code
+      .replace(/`([^`]+)`/g, "<code>$1</code>")
+      // Images: ![alt](url)
+      .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" />')
+      // Links: [text](url)
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+  }
+
+  for (let i = 0; i < lines.length; i++) {
+    const rawLine = lines[i];
+    const line = rawLine.trim();
+
+    // Table row detection: "| cell | cell |"
+    if (line.startsWith("|") && line.endsWith("|")) {
+      closeList();
+      closeBlockquote();
+      inTable = true;
+      tableRows.push(line);
+      continue;
+    } else {
+      closeTable();
+    }
+
+    if (!line) {
+      closeList();
+      closeBlockquote();
+      continue;
+    }
+
+    // Headings
+    const headingMatch = line.match(/^(#{1,6})\s+(.*)$/);
+    if (headingMatch) {
+      closeList();
+      closeBlockquote();
+      const levelNum = headingMatch[1].length;
+      let targetLevel: 1 | 2 | 3 = 2;
+      if (levelNum === 1) targetLevel = allowedHeadings.includes(1) ? 1 : 2;
+      else if (levelNum === 2) targetLevel = 2;
+      else targetLevel = 3;
+
+      htmlParts.push(`<h${targetLevel}>${formatInlineMarkdown(headingMatch[2])}</h${targetLevel}>`);
+      continue;
+    }
+
+    // Blockquotes
+    if (line.startsWith(">")) {
+      closeList();
+      const quoteText = line.replace(/^>\s*/, "");
+      if (!inBlockquote) {
+        htmlParts.push(`<blockquote>`);
+        inBlockquote = true;
+      }
+      htmlParts.push(`<p>${formatInlineMarkdown(quoteText)}</p>`);
+      continue;
+    } else {
+      closeBlockquote();
+    }
+
+    // Unordered list: - item, * item, + item
+    const ulMatch = line.match(/^[-*+]\s+(.*)$/);
+    if (ulMatch) {
+      if (inList !== "ul") {
+        closeList();
+        htmlParts.push(`<ul>`);
+        inList = "ul";
+      }
+      htmlParts.push(`<li>${formatInlineMarkdown(ulMatch[1])}</li>`);
+      continue;
+    }
+
+    // Ordered list: 1. item
+    const olMatch = line.match(/^\d+\.\s+(.*)$/);
+    if (olMatch) {
+      if (inList !== "ol") {
+        closeList();
+        htmlParts.push(`<ol>`);
+        inList = "ol";
+      }
+      htmlParts.push(`<li>${formatInlineMarkdown(olMatch[1])}</li>`);
+      continue;
+    }
+
+    closeList();
+
+    // Regular paragraph
+    htmlParts.push(`<p>${formatInlineMarkdown(line)}</p>`);
+  }
+
+  closeList();
+  closeBlockquote();
+  closeTable();
+
+  return htmlParts.join("");
+}
+
+/**
+ * Cleans and normalizes HTML pasted from rich sources (Google Docs, Word, ChatGPT web copy)
+ * ensuring headings are mapped to allowed levels, stripping unwanted fonts/colors, while
+ * preserving H2, H3, P, B, I, Lists, Links, Images, and Tables.
+ */
+function cleanRichHtml(rawHtml: string, allowedHeadings: (1 | 2 | 3)[]): string {
+  try {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(rawHtml, "text/html");
+    const body = doc.body;
+
+    // Normalize headings
+    const headings = body.querySelectorAll("h1, h2, h3, h4, h5, h6");
+    headings.forEach((h) => {
+      const tag = h.tagName.toLowerCase();
+      let targetTag = "h2";
+      if (tag === "h1") targetTag = allowedHeadings.includes(1) ? "h1" : "h2";
+      else if (tag === "h2") targetTag = "h2";
+      else targetTag = "h3";
+
+      if (tag !== targetTag) {
+        const replacement = doc.createElement(targetTag);
+        replacement.innerHTML = h.innerHTML;
+        h.replaceWith(replacement);
+      }
+    });
+
+    // Strip inline font, background, and color styles that ruin dark/light themes
+    const allElements = body.querySelectorAll("*");
+    allElements.forEach((el) => {
+      el.removeAttribute("class");
+      if (el.hasAttribute("style")) {
+        const style = el.getAttribute("style") || "";
+        if (/border|collapse/i.test(style) && /TABLE|TD|TH|TR/i.test(el.tagName)) {
+          el.setAttribute("style", "border:1px solid #d6d3d1;padding:8px 12px;");
+        } else {
+          el.removeAttribute("style");
+        }
+      }
+    });
+
+    // Ensure links have safe attributes
+    const links = body.querySelectorAll("a");
+    links.forEach((a) => {
+      a.setAttribute("target", "_blank");
+      a.setAttribute("rel", "noopener noreferrer");
+    });
+
+    return body.innerHTML;
+  } catch {
+    return rawHtml;
+  }
+}
+
 export default function RichTextEditor({
   value,
   onChange,
@@ -44,33 +254,30 @@ export default function RichTextEditor({
   onChange: (html: string) => void;
   placeholder?: string;
   minHeight?: string;
-  // Restricts which heading buttons the toolbar offers — e.g. blog article
-  // body content passes [2, 3] so writers can't accidentally create a
-  // second H1 on the page (the post title is already the one true H1).
-  // Defaults to all three for every other existing use of this editor.
   allowedHeadings?: (1 | 2 | 3)[];
-  // How far from the top of the viewport this editor's own toolbar sticks.
-  // Defaults to flush with the top (0). Pass the height of whatever other
-  // sticky bar sits above this editor on the page (e.g. the blog editor's
-  // sticky tab bar) so the two don't stack on top of each other.
   stickyOffset?: string;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [isEmpty, setIsEmpty] = useState(!value);
   const [imageModalOpen, setImageModalOpen] = useState(false);
+  const [editingImageData, setEditingImageData] = useState<ImageModalData | null>(null);
+  const editingImageElementRef = useRef<{
+    img: HTMLImageElement;
+    figure: HTMLElement | null;
+    figcaption: HTMLElement | null;
+  } | null>(null);
+
   const [linkModalOpen, setLinkModalOpen] = useState(false);
-  // The DOM selection is lost the instant focus moves into the image/link
-  // modal's inputs, so the cursor position (and any selected text) has to
-  // be captured up front (at the moment the toolbar button is clicked) and
-  // restored right before the image/link is actually inserted. Shared by
-  // both modals since only one is ever open at a time.
   const savedRangeRef = useRef<Range | null>(null);
 
-  // Only set innerHTML once, on mount — re-syncing on every `value` change
-  // would reset the cursor position on every keystroke, since typing
-  // itself triggers the onChange that updates `value`. Switching tabs in
-  // the parent form unmounts/remounts this component, which naturally
-  // re-runs this with whatever the current value is at that time.
+  // Real-time active format state for highlighting toolbar buttons (H2, H3, P, Bold, etc.)
+  const [activeBlock, setActiveBlock] = useState<"h1" | "h2" | "h3" | "p" | "ul" | "ol" | "blockquote" | "table" | null>("p");
+  const [isBold, setIsBold] = useState(false);
+  const [isItalic, setIsItalic] = useState(false);
+  const [isUnderline, setIsUnderline] = useState(false);
+  const [isUl, setIsUl] = useState(false);
+  const [isOl, setIsOl] = useState(false);
+
   useEffect(() => {
     if (ref.current) {
       ref.current.innerHTML = value || "";
@@ -79,12 +286,58 @@ export default function RichTextEditor({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  function handleInput() {
+  const handleInput = useCallback(() => {
     if (!ref.current) return;
     const html = ref.current.innerHTML;
     setIsEmpty(!ref.current.textContent?.trim());
     onChange(html);
-  }
+    updateActiveFormats();
+  }, [onChange]);
+
+  // Inspects the user's cursor / selection to determine active format
+  const updateActiveFormats = useCallback(() => {
+    if (!ref.current) return;
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return;
+    const range = sel.getRangeAt(0);
+    if (!ref.current.contains(range.commonAncestorContainer)) return;
+
+    let node: Node | null = range.commonAncestorContainer;
+    if (node.nodeType === Node.TEXT_NODE) node = node.parentNode;
+
+    let detectedBlock: "h1" | "h2" | "h3" | "p" | "ul" | "ol" | "blockquote" | "table" | null = null;
+    let curr = node as HTMLElement | null;
+    while (curr && curr !== ref.current) {
+      const tag = curr.tagName.toLowerCase();
+      if (tag === "h1") { detectedBlock = "h1"; break; }
+      if (tag === "h2") { detectedBlock = "h2"; break; }
+      if (tag === "h3") { detectedBlock = "h3"; break; }
+      if (tag === "p") { detectedBlock = "p"; break; }
+      if (tag === "ul") { detectedBlock = "ul"; break; }
+      if (tag === "ol") { detectedBlock = "ol"; break; }
+      if (tag === "blockquote") { detectedBlock = "blockquote"; break; }
+      if (tag === "table") { detectedBlock = "table"; break; }
+      curr = curr.parentElement;
+    }
+
+    setActiveBlock(detectedBlock || "p");
+
+    try {
+      setIsBold(document.queryCommandState("bold"));
+      setIsItalic(document.queryCommandState("italic"));
+      setIsUnderline(document.queryCommandState("underline"));
+      setIsUl(document.queryCommandState("insertUnorderedList"));
+      setIsOl(document.queryCommandState("insertOrderedList"));
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    const handleSelectionChange = () => {
+      updateActiveFormats();
+    };
+    document.addEventListener("selectionchange", handleSelectionChange);
+    return () => document.removeEventListener("selectionchange", handleSelectionChange);
+  }, [updateActiveFormats]);
 
   function exec(command: string, arg?: string) {
     ref.current?.focus();
@@ -100,11 +353,6 @@ export default function RichTextEditor({
     return range.cloneRange();
   }
 
-  // Restores whatever was saved by captureSelection() (or, failing that,
-  // collapses to the end of the content) and returns the live Range so the
-  // caller can insert relative to it. Shared by both the image and link
-  // insert flows, which both need this exact same "get my selection back
-  // after the modal stole focus" step.
   function restoreSelection(): Range | null {
     if (!ref.current) return null;
     ref.current.focus();
@@ -121,6 +369,76 @@ export default function RichTextEditor({
     }
     sel.addRange(range);
     return range;
+  }
+
+  // Intercept Paste events to cleanly parse ChatGPT copy/paste, Markdown, or HTML
+  function handlePaste(e: React.ClipboardEvent<HTMLDivElement>) {
+    e.preventDefault();
+    const clipboardData = e.clipboardData;
+    const pastedHtml = clipboardData.getData("text/html");
+    const pastedText = clipboardData.getData("text/plain");
+
+    let finalHtml = "";
+
+    const isMarkdown =
+      pastedText &&
+      (/(^|\n)#{1,6}\s+/.test(pastedText) ||
+        /(^|\n)[-*+]\s+/.test(pastedText) ||
+        /(^|\n)\d+\.\s+/.test(pastedText) ||
+        /\*\*[^*]+\*\*/.test(pastedText) ||
+        /\[[^\]]+\]\([^)]+\)/.test(pastedText) ||
+        /(^|\n)\|.*\|/.test(pastedText));
+
+    if (pastedHtml && !isMarkdown) {
+      finalHtml = cleanRichHtml(pastedHtml, allowedHeadings);
+    } else if (pastedText) {
+      if (isMarkdown) {
+        finalHtml = markdownToHtml(pastedText, allowedHeadings);
+      } else {
+        const paras = pastedText.split(/\r?\n\r?\n/);
+        finalHtml = paras
+          .map((p) => {
+            const clean = p.trim().replace(/\r?\n/g, "<br>");
+            return clean ? `<p>${clean}</p>` : "";
+          })
+          .filter(Boolean)
+          .join("");
+      }
+    }
+
+    if (finalHtml) {
+      ref.current?.focus();
+      document.execCommand("insertHTML", false, finalHtml);
+      handleInput();
+    }
+  }
+
+  function handleEditorClick(e: React.MouseEvent<HTMLDivElement>) {
+    updateActiveFormats();
+
+    const target = e.target as HTMLElement;
+    let img: HTMLImageElement | null = null;
+    let figure: HTMLElement | null = null;
+
+    if (target.tagName === "IMG") {
+      img = target as HTMLImageElement;
+      figure = img.closest("figure");
+    } else if (target.tagName === "FIGURE" || target.closest("figure")) {
+      figure = target.tagName === "FIGURE" ? target : target.closest("figure");
+      img = figure ? figure.querySelector("img") : null;
+    }
+
+    if (img) {
+      e.preventDefault();
+      const figcaption = figure ? figure.querySelector("figcaption") : null;
+      editingImageElementRef.current = { img, figure, figcaption };
+      setEditingImageData({
+        url: img.getAttribute("src") || "",
+        alt: img.getAttribute("alt") || "",
+        caption: figcaption?.textContent || "",
+      });
+      setImageModalOpen(true);
+    }
   }
 
   function insertLink() {
@@ -147,9 +465,6 @@ export default function RichTextEditor({
     const anchor = document.createElement("a");
     anchor.setAttribute("href", normalized);
     if (newTab) anchor.setAttribute("target", "_blank");
-    // noopener/noreferrer must go alongside target="_blank" so the new tab
-    // can't reach back into this page via window.opener; nofollow rides
-    // along in the same rel attribute when both are set.
     const relTokens = [
       ...(nofollow ? ["nofollow"] : []),
       ...(newTab ? ["noopener", "noreferrer"] : []),
@@ -157,7 +472,6 @@ export default function RichTextEditor({
     if (relTokens.length) anchor.setAttribute("rel", relTokens.join(" "));
 
     if (range.collapsed) {
-      // Nothing was selected — insert the URL itself as the clickable text.
       anchor.textContent = normalized;
     } else {
       anchor.appendChild(range.extractContents());
@@ -176,20 +490,11 @@ export default function RichTextEditor({
     setLinkModalOpen(false);
   }
 
-  // Clicking H1/H2/H3 with a partial-line selection should turn only the
-  // selected text into a heading — not the whole paragraph, which is what
-  // document.execCommand("formatBlock") always does (it only knows how to
-  // convert an entire block). This splits the current block into up to
-  // three pieces instead: the text before the selection (kept as a
-  // paragraph), the selection itself (the new heading), and the text after
-  // (also kept as a paragraph) — any empty piece is simply omitted.
   function applyHeading(level: 1 | 2 | 3) {
     const sel = window.getSelection();
     const range = sel && sel.rangeCount > 0 ? sel.getRangeAt(0) : null;
 
     if (!range || range.collapsed || !ref.current || !ref.current.contains(range.commonAncestorContainer)) {
-      // No real text selection (just a cursor) — fall back to the
-      // familiar "convert the whole current block" behavior.
       exec("formatBlock", `<h${level}>`);
       return;
     }
@@ -202,14 +507,6 @@ export default function RichTextEditor({
       block = block.parentElement;
     }
 
-    // Older content is sometimes stored as bare text with no wrapping <p>
-    // (saved before this editor started wrapping paragraphs), so the
-    // selected text node's parent is the editable root itself rather than
-    // a recognizable block. That's still splittable — treat the whole
-    // root's contents as the one implicit paragraph. But if the selection's
-    // common ancestor was already the root *element* (not a text node),
-    // the selection spans multiple real block children, which is
-    // genuinely ambiguous — fall back rather than guessing there too.
     const useRootAsBlock = (!block || block === ref.current) && startedInTextNode;
     if ((!block || block === ref.current) && !useRootAsBlock) {
       exec("formatBlock", `<h${level}>`);
@@ -252,8 +549,6 @@ export default function RichTextEditor({
       container.replaceWith(...replacement);
     }
 
-    // Put the cursor at the end of the new heading rather than leaving it
-    // wherever the browser happens to land after a manual DOM swap.
     const newSel = window.getSelection();
     if (newSel) {
       const after = document.createRange();
@@ -266,12 +561,48 @@ export default function RichTextEditor({
     handleInput();
   }
 
-  function insertImage() {
+  function openNewImageModal() {
+    editingImageElementRef.current = null;
+    setEditingImageData(null);
     savedRangeRef.current = captureSelection();
     setImageModalOpen(true);
   }
 
-  function handleImageInsert({ url, alt, caption }: { url: string; alt: string; caption: string }) {
+  function handleImageModalSave({ url, alt, caption }: ImageModalData) {
+    if (editingImageElementRef.current) {
+      const { img, figure } = editingImageElementRef.current;
+      img.setAttribute("src", url);
+      img.setAttribute("alt", alt);
+
+      const trimmedCaption = caption.trim();
+      if (trimmedCaption) {
+        if (figure) {
+          let figcaption = figure.querySelector("figcaption");
+          if (!figcaption) {
+            figcaption = document.createElement("figcaption");
+            figure.appendChild(figcaption);
+          }
+          figcaption.textContent = trimmedCaption;
+        } else {
+          const fig = document.createElement("figure");
+          const cap = document.createElement("figcaption");
+          cap.textContent = trimmedCaption;
+          img.replaceWith(fig);
+          fig.appendChild(img);
+          fig.appendChild(cap);
+        }
+      } else if (figure) {
+        const figcaption = figure.querySelector("figcaption");
+        if (figcaption) figcaption.remove();
+      }
+
+      handleInput();
+      editingImageElementRef.current = null;
+      setEditingImageData(null);
+      setImageModalOpen(false);
+      return;
+    }
+
     if (!restoreSelection()) {
       setImageModalOpen(false);
       return;
@@ -281,11 +612,23 @@ export default function RichTextEditor({
     const imgHtml = `<img src="${safeUrl}" alt="${safeAlt}" />`;
     const trimmedCaption = caption.trim();
     const html = trimmedCaption
-      ? `<figure>${imgHtml}<figcaption>${escapeHtml(trimmedCaption)}</figcaption></figure>`
-      : imgHtml;
+      ? `<figure>${imgHtml}<figcaption>${escapeHtml(trimmedCaption)}</figcaption></figure><p><br></p>`
+      : `${imgHtml}<p><br></p>`;
     document.execCommand("insertHTML", false, html);
     handleInput();
     setImageModalOpen(false);
+  }
+
+  function handleImageDelete() {
+    if (editingImageElementRef.current) {
+      const { img, figure } = editingImageElementRef.current;
+      const toRemove = figure || img;
+      toRemove.remove();
+      handleInput();
+      editingImageElementRef.current = null;
+      setEditingImageData(null);
+      setImageModalOpen(false);
+    }
   }
 
   function insertTable() {
@@ -293,13 +636,13 @@ export default function RichTextEditor({
     const rows = 3;
     const cols = 3;
     const cells = Array.from({ length: cols })
-      .map(() => `<td style="border:1px solid #ccc;padding:6px 10px;">&nbsp;</td>`)
+      .map(() => `<td style="border:1px solid #d6d3d1;padding:6px 10px;">&nbsp;</td>`)
       .join("");
     const tableRows = Array.from({ length: rows }).map(() => `<tr>${cells}</tr>`).join("");
     document.execCommand(
       "insertHTML",
       false,
-      `<table style="border-collapse:collapse;width:100%;"><tbody>${tableRows}</tbody></table><p><br></p>`
+      `<table style="border-collapse:collapse;width:100%;margin:1.5rem 0;"><tbody>${tableRows}</tbody></table><p><br></p>`
     );
     handleInput();
   }
@@ -307,67 +650,164 @@ export default function RichTextEditor({
   const ToolbarButton = ({
     label,
     title,
+    active = false,
     onClick,
   }: {
     label: React.ReactNode;
     title: string;
+    active?: boolean;
     onClick: () => void;
   }) => (
     <button
       type="button"
       title={title}
-      onMouseDown={(e) => e.preventDefault()} // keep focus/selection in the editor
+      onMouseDown={(e) => e.preventDefault()}
       onClick={onClick}
-      className="rounded px-2 py-1 text-xs font-semibold text-stone-600 transition hover:bg-stone-200 hover:text-stone-900"
+      className={`rounded px-2.5 py-1 text-xs font-semibold transition ${
+        active
+          ? "bg-seine-teal text-white shadow-sm ring-1 ring-seine-teal"
+          : "text-stone-600 hover:bg-stone-200 hover:text-stone-900"
+      }`}
     >
       {label}
     </button>
   );
 
+  const getFormatLabel = () => {
+    switch (activeBlock) {
+      case "h1":
+        return "Heading 1 (H1)";
+      case "h2":
+        return "Heading 2 (H2)";
+      case "h3":
+        return "Heading 3 (H3)";
+      case "ul":
+        return "Bullet List";
+      case "ol":
+        return "Numbered List";
+      case "blockquote":
+        return "Quote";
+      case "table":
+        return "Table";
+      case "p":
+      default:
+        return "Paragraph (P)";
+    }
+  };
+
   return (
     <div className="rounded-lg border border-stone-300 focus-within:border-seine-teal focus-within:ring-1 focus-within:ring-seine-teal">
       <div
-        className="sticky z-10 flex flex-wrap items-center gap-0.5 rounded-t-lg border-b border-stone-200 bg-stone-50 p-1.5"
+        className="sticky z-10 flex flex-wrap items-center justify-between gap-1 rounded-t-lg border-b border-stone-200 bg-stone-50 p-1.5"
         style={{ top: stickyOffset || 0 }}
       >
-        {allowedHeadings.includes(1) && (
-          <ToolbarButton label="H1" title="Heading 1" onClick={() => applyHeading(1)} />
-        )}
-        {allowedHeadings.includes(2) && (
-          <ToolbarButton label="H2" title="Heading 2" onClick={() => applyHeading(2)} />
-        )}
-        {allowedHeadings.includes(3) && (
-          <ToolbarButton label="H3" title="Heading 3" onClick={() => applyHeading(3)} />
-        )}
-        <ToolbarButton label="P" title="Paragraph (normal text)" onClick={() => exec("formatBlock", "<p>")} />
-        <span className="mx-1 h-4 w-px bg-stone-300" />
-        <ToolbarButton label={<span className="font-bold">B</span>} title="Bold" onClick={() => exec("bold")} />
-        <ToolbarButton label={<span className="italic">I</span>} title="Italic" onClick={() => exec("italic")} />
-        <ToolbarButton label={<span className="underline">U</span>} title="Underline" onClick={() => exec("underline")} />
-        <span className="mx-1 h-4 w-px bg-stone-300" />
-        <ToolbarButton label="• List" title="Bullet list" onClick={() => exec("insertUnorderedList")} />
-        <ToolbarButton label="1. List" title="Numbered list" onClick={() => exec("insertOrderedList")} />
-        <span className="mx-1 h-4 w-px bg-stone-300" />
-        <ToolbarButton label="Link" title="Insert link" onClick={insertLink} />
-        <ToolbarButton label="Image" title="Insert image" onClick={insertImage} />
-        <ToolbarButton label="Table" title="Insert 3×3 table" onClick={insertTable} />
-        <span className="mx-1 h-4 w-px bg-stone-300" />
-        <ToolbarButton label="Clear" title="Clear formatting" onClick={() => exec("removeFormat")} />
+        <div className="flex flex-wrap items-center gap-0.5">
+          {allowedHeadings.includes(1) && (
+            <ToolbarButton
+              label="H1"
+              title="Heading 1"
+              active={activeBlock === "h1"}
+              onClick={() => applyHeading(1)}
+            />
+          )}
+          {allowedHeadings.includes(2) && (
+            <ToolbarButton
+              label="H2"
+              title="Heading 2"
+              active={activeBlock === "h2"}
+              onClick={() => applyHeading(2)}
+            />
+          )}
+          {allowedHeadings.includes(3) && (
+            <ToolbarButton
+              label="H3"
+              title="Heading 3"
+              active={activeBlock === "h3"}
+              onClick={() => applyHeading(3)}
+            />
+          )}
+          <ToolbarButton
+            label="P"
+            title="Paragraph (normal text)"
+            active={activeBlock === "p"}
+            onClick={() => exec("formatBlock", "<p>")}
+          />
+          <span className="mx-1 h-4 w-px bg-stone-300" />
+          <ToolbarButton
+            label={<span className="font-bold">B</span>}
+            title="Bold"
+            active={isBold}
+            onClick={() => exec("bold")}
+          />
+          <ToolbarButton
+            label={<span className="italic">I</span>}
+            title="Italic"
+            active={isItalic}
+            onClick={() => exec("italic")}
+          />
+          <ToolbarButton
+            label={<span className="underline">U</span>}
+            title="Underline"
+            active={isUnderline}
+            onClick={() => exec("underline")}
+          />
+          <span className="mx-1 h-4 w-px bg-stone-300" />
+          <ToolbarButton
+            label="• List"
+            title="Bullet list"
+            active={isUl || activeBlock === "ul"}
+            onClick={() => exec("insertUnorderedList")}
+          />
+          <ToolbarButton
+            label="1. List"
+            title="Numbered list"
+            active={isOl || activeBlock === "ol"}
+            onClick={() => exec("insertOrderedList")}
+          />
+          <span className="mx-1 h-4 w-px bg-stone-300" />
+          <ToolbarButton label="Link" title="Insert link" onClick={insertLink} />
+          <ToolbarButton label="Image" title="Insert image" onClick={openNewImageModal} />
+          <ToolbarButton label="Table" title="Insert 3×3 table" onClick={insertTable} />
+          <span className="mx-1 h-4 w-px bg-stone-300" />
+          <ToolbarButton label="Clear" title="Clear formatting" onClick={() => exec("removeFormat")} />
+        </div>
+
+        {/* Real-time Block Status Indicator Pill */}
+        <div className="flex items-center gap-1.5 px-2 py-0.5 text-xs text-stone-500">
+          <span className="h-2 w-2 rounded-full bg-seine-teal" />
+          <span>Current:</span>
+          <span className="font-semibold text-stone-800">{getFormatLabel()}</span>
+        </div>
       </div>
+
       <div
         ref={ref}
         contentEditable
         suppressContentEditableWarning
         onInput={handleInput}
         onBlur={handleInput}
+        onClick={handleEditorClick}
+        onKeyUp={updateActiveFormats}
+        onMouseUp={updateActiveFormats}
+        onPaste={handlePaste}
         data-placeholder={placeholder}
         data-rte-empty={isEmpty ? "true" : "false"}
-        className="rich-content max-w-none px-3 py-2.5 text-sm text-stone-900 outline-none"
+        className="rich-content max-w-none px-3 py-2.5 text-sm text-stone-900 outline-none [&_img]:cursor-pointer [&_img]:transition [&_img:hover]:ring-4 [&_img:hover]:ring-seine-teal/40 [&_img:hover]:rounded-lg [&_figure]:cursor-pointer [&_figure:hover]:opacity-95"
         style={{ minHeight }}
       />
 
       {imageModalOpen && (
-        <RichImageModal onInsert={handleImageInsert} onClose={() => setImageModalOpen(false)} />
+        <RichImageModal
+          initialValues={editingImageData || undefined}
+          isEditing={!!editingImageData}
+          onInsert={handleImageModalSave}
+          onDelete={editingImageData ? handleImageDelete : undefined}
+          onClose={() => {
+            setImageModalOpen(false);
+            setEditingImageData(null);
+            editingImageElementRef.current = null;
+          }}
+        />
       )}
       {linkModalOpen && (
         <RichLinkModal onInsert={handleLinkInsert} onClose={() => setLinkModalOpen(false)} />
