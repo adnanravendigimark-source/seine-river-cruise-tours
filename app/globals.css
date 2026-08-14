@@ -84,6 +84,12 @@ body {
   text-decoration: underline;
   text-underline-offset: 2px;
 }
+.rich-content a.text-white,
+.rich-content a[class*="text-white"],
+.rich-content a[class*="bg-"] {
+  color: #ffffff !important;
+  text-decoration: none !important;
+}
 .rich-content strong {
   font-weight: 700;
 }
