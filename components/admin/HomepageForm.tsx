@@ -110,6 +110,11 @@ export default function HomepageForm({ initial, tours }: { initial: HomepageCont
     setSaved(false);
   }
 
+  function updateTours(patch: Partial<HomepageContent["sections"]["tours"]>) {
+    setContent((c) => ({ ...c, sections: { ...c.sections, tours: { ...c.sections.tours, ...patch } } }));
+    setSaved(false);
+  }
+
   function updateWhy(patch: Partial<HomepageContent["sections"]["why"]>) {
     setContent((c) => ({ ...c, sections: { ...c.sections, why: { ...c.sections.why, ...patch } } }));
     setSaved(false);
@@ -260,6 +265,15 @@ export default function HomepageForm({ initial, tours }: { initial: HomepageCont
                 <input value={content.heroCtaSecondaryHref} onChange={(e) => update("heroCtaSecondaryHref", e.target.value)} className={inputClass} />
               </Field>
             </div>
+          </SectionCard>
+
+          <SectionCard title="Tour Grid section" description="The heading + intro text directly above the tour cards, right below the hero.">
+            <Field label="Section heading (H2)">
+              <input value={content.sections.tours.heading} onChange={(e) => updateTours({ heading: e.target.value })} className={inputClass} />
+            </Field>
+            <Field label="Subheading">
+              <textarea rows={2} value={content.sections.tours.subheading} onChange={(e) => updateTours({ subheading: e.target.value })} className={inputClass} />
+            </Field>
           </SectionCard>
 
           <SectionCard title="“What You See” section" description="The route timeline + what-you'll-notice section below the tour grid.">

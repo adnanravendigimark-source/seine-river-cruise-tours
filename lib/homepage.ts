@@ -31,6 +31,13 @@ export interface FooterColumn {
   links: FooterLink[];
 }
 
+// Tour grid intro (the heading + subheading directly above the tour cards,
+// right below the hero — see components/TourGrid.tsx).
+export interface TourSection {
+  heading: string;
+  subheading: string;
+}
+
 // "What You See" section (the route timeline + what-you'll-notice section
 // right below the tour grid).
 export interface WhySection {
@@ -88,6 +95,7 @@ export interface PriceSection {
 }
 
 export interface HomepageSections {
+  tours: TourSection;
   why: WhySection;
   tower: TowerSection;
   practical: PracticalSection;
@@ -257,6 +265,11 @@ export const DEFAULT_GALLERY: GalleryImage[] = [
 ];
 
 export const DEFAULT_SECTIONS: HomepageSections = {
+  tours: {
+    heading: "Seine River Cruises & Tickets",
+    subheading:
+      "Three clear options — a quick sightseeing cruise, a dinner cruise with live music, and a budget-friendly evening cruise. Every departure covers the same iconic stretch of river.",
+  },
   why: {
     heading: "What You Actually See on a Seine River Cruise",
     intro:
@@ -450,6 +463,7 @@ function rowToHomepage(row: any): HomepageContent {
     featuredUrgencyText: row.featured_urgency_text || "",
     featuredReasons: parseReasons(row.featured_reasons),
     sections: {
+      tours: { ...DEFAULT_SECTIONS.tours, ...sectionsRaw.tours },
       why: { ...DEFAULT_SECTIONS.why, ...sectionsRaw.why },
       tower: { ...DEFAULT_SECTIONS.tower, ...sectionsRaw.tower },
       practical: { ...DEFAULT_SECTIONS.practical, ...sectionsRaw.practical },

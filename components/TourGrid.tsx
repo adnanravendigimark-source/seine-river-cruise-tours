@@ -20,12 +20,9 @@ export default async function TourGrid() {
     <section id="tours" className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
       <div className="max-w-2xl">
         <h2 className="font-display text-3xl font-bold text-stone-900">
-          Seine River Cruises & Tickets
+          {content.sections.tours.heading}
         </h2>
-        <p className="mt-3 text-stone-900/70">
-          Three clear options — a quick sightseeing cruise, a dinner cruise with live music, and a
-          budget-friendly evening cruise. Every departure covers the same iconic stretch of river.
-        </p>
+        <p className="mt-3 text-stone-900/70">{content.sections.tours.subheading}</p>
       </div>
       <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {orderedTours.map((tour) => (
