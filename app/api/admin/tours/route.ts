@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getToursRaw, saveTours, type TourRecord } from "@/lib/data";
-import { DB_ERROR_MESSAGE } from "@/lib/db";
+import { dbErrorMessage } from "@/lib/db";
 
 // Force this route to always run as a live serverless function rather than
 // get statically optimized at build time — Next.js can otherwise pre-render
@@ -28,8 +28,8 @@ export async function POST(req: Request) {
   tours.push(body);
   try {
     await saveTours(tours);
-  } catch {
-    return NextResponse.json({ error: DB_ERROR_MESSAGE }, { status: 500 });
+  } catch (err) {
+    return NextResponse.json({ error: dbErrorMessage(err) }, { status: 500 });
   }
   return NextResponse.json({ ok: true });
 }
