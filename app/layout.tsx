@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Cormorant_Garamond } from "next/font/google";
 import { SITE_URL } from "@/lib/site";
 import { resolveRobots } from "@/lib/seo";
@@ -154,6 +155,23 @@ export default async function RootLayout({
 
   return (
     <html lang="en" className={displayFont.variable}>
+      <head>
+        {/* Google tag (gtag.js) */}
+        <Script
+          async
+          src="https://www.googletagmanager.com/gtag/js?id=G-T0SCZK1TFH"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+
+            gtag('config', 'G-T0SCZK1TFH');
+          `}
+        </Script>
+      </head>
       <body className="font-body bg-stone-50 text-stone-900 antialiased">
         {/* :root custom properties apply from anywhere in the document, so
             this doesn't need to live in <head> — Next.js's metadata API
