@@ -49,6 +49,11 @@ export interface TourRecord {
   hrefExtra?: string;
   featured?: boolean;
   bestFor: string;
+  // Shown in the homepage price-comparison table's first feature column
+  // (see components/PriceComparison.tsx and the Price section's
+  // column1Label in lib/homepage.ts) — e.g. "1.5 hours". Blank falls back
+  // to the tour's own Duration field.
+  priceTableColumn1?: string;
   // Shown in the homepage price-comparison table's second feature column
   // (see components/PriceComparison.tsx and the Price section's
   // column2Label in lib/homepage.ts) — e.g. "Yes — lunch or crêpe tasting".
@@ -94,6 +99,7 @@ function rowToTour(row: any): TourRecord {
     hrefExtra: row.href_extra || undefined,
     featured: !!row.featured,
     bestFor: row.best_for,
+    priceTableColumn1: row.price_table_column1 || undefined,
     priceTableFeature: row.price_table_feature || undefined,
   };
 }
@@ -122,12 +128,12 @@ export async function saveTours(records: TourRecord[]): Promise<void> {
       INSERT INTO tours (
         id, badge, ribbon, title, description, includes, duration, rating,
         reviews, price, original_price, image, image_alt, href_path,
-        href_extra, featured, best_for, price_table_feature, sort_order
+        href_extra, featured, best_for, price_table_column1, price_table_feature, sort_order
       ) VALUES (
         ${t.id}, ${t.badge}, ${t.ribbon || null}, ${t.title}, ${t.description},
         ${JSON.stringify(t.includes || [])}::jsonb, ${t.duration || null}, ${t.rating},
         ${t.reviews}, ${t.price}, ${t.originalPrice ?? null}, ${t.image}, ${t.imageAlt},
-        ${t.hrefPath}, ${t.hrefExtra || null}, ${!!t.featured}, ${t.bestFor}, ${t.priceTableFeature || ""}, ${i}
+        ${t.hrefPath}, ${t.hrefExtra || null}, ${!!t.featured}, ${t.bestFor}, ${t.priceTableColumn1 || ""}, ${t.priceTableFeature || ""}, ${i}
       )
       ON CONFLICT (id) DO UPDATE SET
         badge = EXCLUDED.badge,
@@ -146,6 +152,7 @@ export async function saveTours(records: TourRecord[]): Promise<void> {
         href_extra = EXCLUDED.href_extra,
         featured = EXCLUDED.featured,
         best_for = EXCLUDED.best_for,
+        price_table_column1 = EXCLUDED.price_table_column1,
         price_table_feature = EXCLUDED.price_table_feature,
         sort_order = EXCLUDED.sort_order
     `;

@@ -90,6 +90,7 @@ async function createTables() {
       href_extra TEXT,
       featured BOOLEAN NOT NULL DEFAULT false,
       best_for TEXT NOT NULL DEFAULT '',
+      price_table_column1 TEXT NOT NULL DEFAULT '',
       price_table_feature TEXT NOT NULL DEFAULT '',
       sort_order INTEGER NOT NULL DEFAULT 0
     )
@@ -311,6 +312,11 @@ async function addSeoColumns() {
   // feature column (e.g. "Yes — lunch or crêpe tasting") — replaces what
   // used to be a hardcoded tour-ID check in components/PriceComparison.tsx.
   await sql`ALTER TABLE tours ADD COLUMN IF NOT EXISTS price_table_feature TEXT NOT NULL DEFAULT ''`;
+
+  // Per-tour override for the price-comparison table's first feature
+  // column (e.g. "1.5 hours") — blank falls back to the tour's own
+  // Duration field.
+  await sql`ALTER TABLE tours ADD COLUMN IF NOT EXISTS price_table_column1 TEXT NOT NULL DEFAULT ''`;
 }
 
 // Full homepage CMS rollout — turns every visible piece of the homepage

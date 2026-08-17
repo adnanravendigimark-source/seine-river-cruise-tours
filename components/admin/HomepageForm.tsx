@@ -417,7 +417,7 @@ export default function HomepageForm({ initial, tours }: { initial: HomepageCont
               <Field label="Column: price" hint='e.g. "Price"'>
                 <input value={content.sections.price.priceLabel} onChange={(e) => updatePrice({ priceLabel: e.target.value })} className={inputClass} />
               </Field>
-              <Field label="Column 1" hint='e.g. "Duration" — auto-filled per tour from its Duration field.'>
+              <Field label="Column 1" hint={'e.g. "Duration" — set per tour via its "Price table: Duration" field, or leave blank to use the tour\'s own Duration field.'}>
                 <input value={content.sections.price.column1Label} onChange={(e) => updatePrice({ column1Label: e.target.value })} className={inputClass} />
               </Field>
               <Field label="Column 2" hint='e.g. "Meal Included" — set per tour via its "Price table feature" field.'>
@@ -459,7 +459,7 @@ export default function HomepageForm({ initial, tours }: { initial: HomepageCont
                         <tr key={tour.id} className={`border-t border-stone-200 ${i % 2 ? "bg-stone-50" : ""}`}>
                           <td className="px-3 py-2 font-medium text-stone-900">{tour.title}</td>
                           <td className="px-3 py-2 text-stone-700">€{tour.price}</td>
-                          <td className="px-3 py-2 text-stone-700">{tour.duration}</td>
+                          <td className="px-3 py-2 text-stone-700">{tour.priceTableColumn1 || tour.duration}</td>
                           <td className="px-3 py-2 text-stone-700">{tour.priceTableFeature || "No"}</td>
                           <td className="px-3 py-2 text-stone-700">{tour.bestFor}</td>
                           <td className="px-3 py-2 text-right">

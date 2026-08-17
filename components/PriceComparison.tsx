@@ -41,7 +41,7 @@ export default async function PriceComparison() {
                 <td className="px-5 py-4 font-semibold text-seine-amber">
                   €{tour.price} <span className="font-normal text-stone-900/40">/ person</span>
                 </td>
-                <td className="px-5 py-4 text-stone-900/70">{tour.duration}</td>
+                <td className="px-5 py-4 text-stone-900/70">{tour.priceTableColumn1 || tour.duration}</td>
                 <td className="px-5 py-4 text-stone-900/70">{tour.priceTableFeature || "No"}</td>
                 <td className="px-5 py-4 text-stone-900/70">{tour.bestFor}</td>
                 <td className="px-5 py-4 text-right">
