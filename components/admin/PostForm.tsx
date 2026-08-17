@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import ImageUploadField from "./ImageUploadField";
-import RichTextEditor from "./RichTextEditor";
+import TiptapArticleEditor from "./TiptapArticleEditor";
 import SeoFieldsCard from "./SeoFieldsCard";
 import SeoPreview from "./SeoPreview";
 import SocialPreview from "./SocialPreview";
@@ -320,7 +320,7 @@ export default function PostForm({
               title="Article Content"
               description="Write the article top to bottom, just like a normal document. Use the toolbar to make text a heading, add bold/links/lists/tables, or drop in an image."
             >
-              <RichTextEditor
+              <TiptapArticleEditor
                 value={post.content}
                 onChange={(html) => update("content", html)}
                 placeholder="Write the article here… use the toolbar for headings, bold, links, lists, tables, or images."

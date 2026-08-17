@@ -143,6 +143,18 @@ body {
   color: inherit;
 }
 
+/* Tiptap's Placeholder extension (used by TiptapArticleEditor.tsx, the
+   blog post "Article Content" field) marks the empty first paragraph with
+   a data-placeholder attribute + this class — Tiptap doesn't ship any CSS
+   itself, so the placeholder text is invisible without this. */
+.tiptap p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  color: rgba(120, 113, 108, 0.6);
+  pointer-events: none;
+}
+
 /* Placeholder text for the empty contentEditable in RichTextEditor.tsx. */
 [data-rte-empty="true"]:before {
   content: attr(data-placeholder);
