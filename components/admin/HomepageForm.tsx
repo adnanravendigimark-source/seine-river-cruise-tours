@@ -402,13 +402,30 @@ export default function HomepageForm({ initial }: { initial: HomepageContent }) 
             </Field>
           </SectionCard>
 
-          <SectionCard title="Price comparison intro" description="The table itself pulls live from Tours & Tickets — this is just the heading above it.">
+          <SectionCard title="Price comparison" description="The table rows pull live from Tours & Tickets — this covers the heading above it and the column headers on the table itself.">
             <Field label="Heading (H2)">
               <input value={content.sections.price.heading} onChange={(e) => updatePrice({ heading: e.target.value })} className={inputClass} />
             </Field>
             <Field label="Subheading">
               <RichTextEditor value={content.sections.price.subheading} onChange={(html) => updatePrice({ subheading: html })} minHeight="4rem" />
             </Field>
+            <div className="grid gap-5 sm:grid-cols-2">
+              <Field label="Column: item name" hint='e.g. "Cruise Type"'>
+                <input value={content.sections.price.itemLabel} onChange={(e) => updatePrice({ itemLabel: e.target.value })} className={inputClass} />
+              </Field>
+              <Field label="Column: price" hint='e.g. "Price"'>
+                <input value={content.sections.price.priceLabel} onChange={(e) => updatePrice({ priceLabel: e.target.value })} className={inputClass} />
+              </Field>
+              <Field label="Column 1" hint='e.g. "Duration" — auto-filled per tour from its Duration field.'>
+                <input value={content.sections.price.column1Label} onChange={(e) => updatePrice({ column1Label: e.target.value })} className={inputClass} />
+              </Field>
+              <Field label="Column 2" hint='e.g. "Meal Included" — set per tour via its "Price table feature" field.'>
+                <input value={content.sections.price.column2Label} onChange={(e) => updatePrice({ column2Label: e.target.value })} className={inputClass} />
+              </Field>
+              <Field label="Column: best for" hint='e.g. "Best For"'>
+                <input value={content.sections.price.bestForLabel} onChange={(e) => updatePrice({ bestForLabel: e.target.value })} className={inputClass} />
+              </Field>
+            </div>
             <Field label="Small note under the table">
               <textarea rows={2} value={content.sections.price.note} onChange={(e) => updatePrice({ note: e.target.value })} className={inputClass} />
             </Field>

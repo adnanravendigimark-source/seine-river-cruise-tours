@@ -267,6 +267,19 @@ export default function TourForm({
         />
       </div>
 
+      <div>
+        <label className={labelClass}>Price table feature (optional)</label>
+        <input
+          value={tour.priceTableFeature || ""}
+          onChange={(e) => update("priceTableFeature", e.target.value)}
+          className={inputClass}
+          placeholder="e.g. Yes — lunch or crêpe tasting"
+        />
+        <p className="mt-1 text-xs text-stone-500">
+          Shown in the homepage price-comparison table's "Meal Included" column for this tour. Leave blank to show "No".
+        </p>
+      </div>
+
       <label className="flex items-center gap-2 text-sm text-stone-700">
         <input
           type="checkbox"

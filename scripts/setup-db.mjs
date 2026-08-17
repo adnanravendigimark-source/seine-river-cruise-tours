@@ -90,6 +90,7 @@ async function createTables() {
       href_extra TEXT,
       featured BOOLEAN NOT NULL DEFAULT false,
       best_for TEXT NOT NULL DEFAULT '',
+      price_table_feature TEXT NOT NULL DEFAULT '',
       sort_order INTEGER NOT NULL DEFAULT 0
     )
   `;
@@ -305,6 +306,11 @@ async function addSeoColumns() {
   await sql`ALTER TABLE site_settings DROP COLUMN IF EXISTS search_indexing_enabled`;
 
   console.log("SEO columns ready.");
+
+  // Per-tour value shown in the homepage price-comparison table's second
+  // feature column (e.g. "Yes — lunch or crêpe tasting") — replaces what
+  // used to be a hardcoded tour-ID check in components/PriceComparison.tsx.
+  await sql`ALTER TABLE tours ADD COLUMN IF NOT EXISTS price_table_feature TEXT NOT NULL DEFAULT ''`;
 }
 
 // Full homepage CMS rollout — turns every visible piece of the homepage
