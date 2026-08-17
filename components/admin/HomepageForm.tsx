@@ -36,6 +36,24 @@ const TABS = [
 
 type TabKey = (typeof TABS)[number]["key"];
 
+// One entry per collapsible card on the Content tab — powers both the
+// "Jump to section" quick nav and each card's default open/closed state.
+const CONTENT_SECTIONS = [
+  { id: "sec-navbar", label: "Navbar" },
+  { id: "sec-hero", label: "Hero" },
+  { id: "sec-highlights", label: "Highlights" },
+  { id: "sec-tourgrid", label: "Tour Grid" },
+  { id: "sec-why", label: "What You See" },
+  { id: "sec-tower", label: "Illuminations Cruise" },
+  { id: "sec-practical", label: "Practical Info" },
+  { id: "sec-price", label: "Price Comparison" },
+  { id: "sec-blogteaser", label: "Blog Teaser" },
+  { id: "sec-faq", label: "FAQ" },
+  { id: "sec-blogpages", label: "Blog Pages" },
+  { id: "sec-404", label: "404 Page" },
+  { id: "sec-footer", label: "Footer" },
+] as const;
+
 function Field({
   label,
   hint,
@@ -54,31 +72,57 @@ function Field({
   );
 }
 
+// Collapsible when `id`+`onToggle` are supplied (the Content tab, which has
+// enough sections to get overwhelming otherwise) — every other tab passes
+// neither and just renders permanently open, exactly like before.
 function SectionCard({
+  id,
   title,
   description,
   children,
   tone = "default",
+  open = true,
+  onToggle,
 }: {
+  id?: string;
   title: string;
   description?: string;
   children: React.ReactNode;
   tone?: "default" | "sitewide";
+  open?: boolean;
+  onToggle?: () => void;
 }) {
-  return (
-    <div className="rounded-2xl border border-stone-200 bg-white p-6">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="font-semibold text-stone-900">{title}</p>
-          {description && <p className="mt-0.5 text-xs text-stone-500">{description}</p>}
-        </div>
+  const collapsible = typeof onToggle === "function";
+  const header = (
+    <div className="flex items-start justify-between gap-3">
+      <div>
+        <p className="font-semibold text-stone-900">{title}</p>
+        {description && <p className="mt-0.5 text-xs text-stone-500">{description}</p>}
+      </div>
+      <div className="flex shrink-0 items-center gap-2">
         {tone === "sitewide" && (
-          <span className="shrink-0 rounded-full bg-amber-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-amber-700 ring-1 ring-amber-200">
+          <span className="rounded-full bg-amber-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-amber-700 ring-1 ring-amber-200">
             Site-wide
           </span>
         )}
+        {collapsible && (
+          <span className={`text-stone-400 transition-transform ${open ? "rotate-180" : ""}`} aria-hidden="true">
+            ▾
+          </span>
+        )}
       </div>
-      <div className="mt-4 space-y-5">{children}</div>
+    </div>
+  );
+  return (
+    <div id={id} className="scroll-mt-24 rounded-2xl border border-stone-200 bg-white p-6">
+      {collapsible ? (
+        <button type="button" onClick={onToggle} className="block w-full text-left">
+          {header}
+        </button>
+      ) : (
+        header
+      )}
+      {open && <div className="mt-4 space-y-5">{children}</div>}
     </div>
   );
 }
@@ -90,6 +134,23 @@ export default function HomepageForm({ initial, tours }: { initial: HomepageCont
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
+  // Only the first section starts open — everything else is one click (or
+  // one "Jump to section" tap) away, so the tab doesn't read as one long
+  // wall of fields.
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+    [CONTENT_SECTIONS[0].id]: true,
+  });
+
+  function toggleSection(id: string) {
+    setOpenSections((s) => ({ ...s, [id]: !s[id] }));
+  }
+
+  function jumpToSection(id: string) {
+    setOpenSections((s) => ({ ...s, [id]: true }));
+    requestAnimationFrame(() => {
+      document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }
 
   function update<K extends keyof HomepageContent>(key: K, value: HomepageContent[K]) {
     setContent((c) => ({ ...c, [key]: value }));
@@ -242,10 +303,31 @@ export default function HomepageForm({ initial, tours }: { initial: HomepageCont
       {/* ---------------- CONTENT TAB ---------------- */}
       {activeTab === "content" && (
         <div className="space-y-5">
+          <div className="rounded-2xl border border-stone-200 bg-stone-50 p-3">
+            <p className="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-stone-400">
+              Jump to section
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {CONTENT_SECTIONS.map((s) => (
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => jumpToSection(s.id)}
+                  className="rounded-full border border-stone-300 bg-white px-3 py-1.5 text-xs font-medium text-stone-700 transition hover:bg-stone-100"
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <SectionCard
+            id="sec-navbar"
             title="Navbar"
             description="The menu bar at the top of every page. The logo image lives on the Images tab."
             tone="sitewide"
+            open={!!openSections["sec-navbar"]}
+            onToggle={() => toggleSection("sec-navbar")}
           >
             <Field label="Nav links">
               <RepeatableList<NavLink>
@@ -287,7 +369,13 @@ export default function HomepageForm({ initial, tours }: { initial: HomepageCont
             </div>
           </SectionCard>
 
-          <SectionCard title="Hero" description="The full-width banner at the top of the homepage.">
+          <SectionCard
+            id="sec-hero"
+            title="Hero"
+            description="The full-width banner at the top of the homepage."
+            open={!!openSections["sec-hero"]}
+            onToggle={() => toggleSection("sec-hero")}
+          >
             <Field label="Hero badge (small pill above the headline)">
               <input value={content.heroBadge} onChange={(e) => update("heroBadge", e.target.value)} className={inputClass} />
             </Field>
@@ -321,7 +409,13 @@ export default function HomepageForm({ initial, tours }: { initial: HomepageCont
             </div>
           </SectionCard>
 
-          <SectionCard title="Seine River Highlights section" description="The dark trust/highlights band right below the hero.">
+          <SectionCard
+            id="sec-highlights"
+            title="Seine River Highlights section"
+            description="The dark trust/highlights band right below the hero."
+            open={!!openSections["sec-highlights"]}
+            onToggle={() => toggleSection("sec-highlights")}
+          >
             <div className="grid gap-5 sm:grid-cols-2">
               <Field label="Eyebrow">
                 <input value={content.sections.highlights.eyebrow} onChange={(e) => updateHighlights({ eyebrow: e.target.value })} className={inputClass} />
@@ -352,7 +446,13 @@ export default function HomepageForm({ initial, tours }: { initial: HomepageCont
             </Field>
           </SectionCard>
 
-          <SectionCard title="Tour Grid section" description="The heading + intro text directly above the tour cards.">
+          <SectionCard
+            id="sec-tourgrid"
+            title="Tour Grid section"
+            description="The heading + intro text directly above the tour cards."
+            open={!!openSections["sec-tourgrid"]}
+            onToggle={() => toggleSection("sec-tourgrid")}
+          >
             <Field label="Section heading (H2)">
               <input value={content.sections.tours.heading} onChange={(e) => updateTours({ heading: e.target.value })} className={inputClass} />
             </Field>
@@ -361,7 +461,13 @@ export default function HomepageForm({ initial, tours }: { initial: HomepageCont
             </Field>
           </SectionCard>
 
-          <SectionCard title="“What You See” section" description="The route timeline + what-you'll-notice section below the tour grid.">
+          <SectionCard
+            id="sec-why"
+            title="“What You See” section"
+            description="The route timeline + what-you'll-notice section below the tour grid."
+            open={!!openSections["sec-why"]}
+            onToggle={() => toggleSection("sec-why")}
+          >
             <Field label="Section heading (H2)">
               <input value={content.sections.why.heading} onChange={(e) => updateWhy({ heading: e.target.value })} className={inputClass} />
             </Field>
@@ -432,7 +538,13 @@ export default function HomepageForm({ initial, tours }: { initial: HomepageCont
             </div>
           </SectionCard>
 
-          <SectionCard title="Illuminations Cruise section" description="Images live on the Images tab.">
+          <SectionCard
+            id="sec-tower"
+            title="Illuminations Cruise section"
+            description="Images live on the Images tab."
+            open={!!openSections["sec-tower"]}
+            onToggle={() => toggleSection("sec-tower")}
+          >
             <div className="grid gap-5 sm:grid-cols-2">
               <Field label="Eyebrow label">
                 <input value={content.sections.tower.eyebrow} onChange={(e) => updateTower({ eyebrow: e.target.value })} className={inputClass} />
@@ -465,7 +577,13 @@ export default function HomepageForm({ initial, tours }: { initial: HomepageCont
             </div>
           </SectionCard>
 
-          <SectionCard title="Practical Info section" description="Opening hours, address, and best-time advice.">
+          <SectionCard
+            id="sec-practical"
+            title="Practical Info section"
+            description="Opening hours, address, and best-time advice."
+            open={!!openSections["sec-practical"]}
+            onToggle={() => toggleSection("sec-practical")}
+          >
             <Field label="Opening hours heading">
               <input value={content.sections.practical.hoursHeading} onChange={(e) => updatePractical({ hoursHeading: e.target.value })} className={inputClass} />
             </Field>
@@ -505,7 +623,13 @@ export default function HomepageForm({ initial, tours }: { initial: HomepageCont
             </Field>
           </SectionCard>
 
-          <SectionCard title="Price comparison" description="The table rows pull live from Tours & Tickets — this covers the heading above it and the column headers on the table itself.">
+          <SectionCard
+            id="sec-price"
+            title="Price comparison"
+            description="The table rows pull live from Tours & Tickets — this covers the heading above it and the column headers on the table itself."
+            open={!!openSections["sec-price"]}
+            onToggle={() => toggleSection("sec-price")}
+          >
             <Field label="Heading (H2)">
               <input value={content.sections.price.heading} onChange={(e) => updatePrice({ heading: e.target.value })} className={inputClass} />
             </Field>
@@ -581,7 +705,13 @@ export default function HomepageForm({ initial, tours }: { initial: HomepageCont
             </div>
           </SectionCard>
 
-          <SectionCard title="Blog teaser section" description={'The "From the Blog" section on the homepage, right above the FAQ.'}>
+          <SectionCard
+            id="sec-blogteaser"
+            title="Blog teaser section"
+            description={'The "From the Blog" section on the homepage, right above the FAQ.'}
+            open={!!openSections["sec-blogteaser"]}
+            onToggle={() => toggleSection("sec-blogteaser")}
+          >
             <div className="grid gap-5 sm:grid-cols-2">
               <Field label="Eyebrow">
                 <input value={content.sections.blogTeaser.eyebrow} onChange={(e) => updateBlogTeaser({ eyebrow: e.target.value })} className={inputClass} />
@@ -603,13 +733,25 @@ export default function HomepageForm({ initial, tours }: { initial: HomepageCont
             </div>
           </SectionCard>
 
-          <SectionCard title="FAQ section" description="The questions and answers themselves are edited from the FAQs admin page — this is just the heading above them.">
+          <SectionCard
+            id="sec-faq"
+            title="FAQ section"
+            description="The questions and answers themselves are edited from the FAQs admin page — this is just the heading above them."
+            open={!!openSections["sec-faq"]}
+            onToggle={() => toggleSection("sec-faq")}
+          >
             <Field label="Heading (H2)">
               <input value={content.sections.faq.heading} onChange={(e) => updateFaq({ heading: e.target.value })} className={inputClass} />
             </Field>
           </SectionCard>
 
-          <SectionCard title="Blog pages" description="Shared labels used across the blog listing page and every article page (not the posts themselves — edit those from /admin/posts).">
+          <SectionCard
+            id="sec-blogpages"
+            title="Blog pages"
+            description="Shared labels used across the blog listing page and every article page (not the posts themselves — edit those from /admin/posts)."
+            open={!!openSections["sec-blogpages"]}
+            onToggle={() => toggleSection("sec-blogpages")}
+          >
             <div className="grid gap-5 sm:grid-cols-2">
               <Field label="Listing page eyebrow">
                 <input value={content.sections.blogPage.eyebrow} onChange={(e) => updateBlogPage({ eyebrow: e.target.value })} className={inputClass} />
@@ -668,7 +810,13 @@ export default function HomepageForm({ initial, tours }: { initial: HomepageCont
             </div>
           </SectionCard>
 
-          <SectionCard title="404 (page not found)" description="Shown when a visitor lands on a broken or missing link.">
+          <SectionCard
+            id="sec-404"
+            title="404 (page not found)"
+            description="Shown when a visitor lands on a broken or missing link."
+            open={!!openSections["sec-404"]}
+            onToggle={() => toggleSection("sec-404")}
+          >
             <Field label="Heading">
               <input value={content.sections.notFound.heading} onChange={(e) => updateNotFound({ heading: e.target.value })} className={inputClass} />
             </Field>
@@ -691,7 +839,14 @@ export default function HomepageForm({ initial, tours }: { initial: HomepageCont
             </div>
           </SectionCard>
 
-          <SectionCard title="Footer" description="Shown at the bottom of every page." tone="sitewide">
+          <SectionCard
+            id="sec-footer"
+            title="Footer"
+            description="Shown at the bottom of every page."
+            tone="sitewide"
+            open={!!openSections["sec-footer"]}
+            onToggle={() => toggleSection("sec-footer")}
+          >
             <Field label="Tagline / disclosure text" hint="Supports bold and links.">
               <RichTextEditor value={content.footer.tagline} onChange={(html) => updateFooter({ tagline: html })} minHeight="4rem" />
             </Field>
