@@ -1,10 +1,11 @@
 import { getHomepageContent } from "@/lib/homepage";
+import { getTours } from "@/lib/data";
 import HomepageForm from "@/components/admin/HomepageForm";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminHomepagePage() {
-  const content = await getHomepageContent();
+  const [content, tours] = await Promise.all([getHomepageContent(), getTours()]);
 
   return (
     <div>
@@ -14,7 +15,7 @@ export default async function AdminHomepagePage() {
         here. Edits appear on the live site immediately after saving, no rebuild or hard refresh needed.
       </p>
       <div className="mt-8 max-w-3xl">
-        <HomepageForm initial={content} />
+        <HomepageForm initial={content} tours={tours} />
       </div>
     </div>
   );

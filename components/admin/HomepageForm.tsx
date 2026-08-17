@@ -18,6 +18,7 @@ import type {
   HoursRow,
   GalleryImage,
 } from "@/lib/homepage";
+import type { Tour } from "@/lib/data";
 
 const inputClass =
   "w-full rounded-lg border border-stone-300 px-3 py-2 text-sm focus:border-seine-teal focus:outline-none focus:ring-1 focus:ring-seine-teal";
@@ -81,7 +82,7 @@ function SectionCard({
   );
 }
 
-export default function HomepageForm({ initial }: { initial: HomepageContent }) {
+export default function HomepageForm({ initial, tours }: { initial: HomepageContent; tours: Tour[] }) {
   const router = useRouter();
   const [content, setContent] = useState<HomepageContent>(initial);
   const [activeTab, setActiveTab] = useState<TabKey>("content");
@@ -429,6 +430,50 @@ export default function HomepageForm({ initial }: { initial: HomepageContent }) 
             <Field label="Small note under the table">
               <textarea rows={2} value={content.sections.price.note} onChange={(e) => updatePrice({ note: e.target.value })} className={inputClass} />
             </Field>
+
+            <div>
+              <p className={labelClass}>Live preview</p>
+              <p className="mb-2 text-xs text-stone-500">
+                Exactly what's on the site right now, row by row. Row content (title, price, features)
+                comes from each tour — edit it on the <Link href="/admin/tours" className="underline">Tours &amp; Tickets</Link> page.
+              </p>
+              {tours.length === 0 ? (
+                <p className="rounded-xl border border-stone-200 bg-stone-50 p-4 text-sm text-stone-500">
+                  No tours yet — add one on the Tours &amp; Tickets page to see it appear here.
+                </p>
+              ) : (
+                <div className="overflow-x-auto rounded-xl border border-stone-200">
+                  <table className="w-full min-w-[640px] border-collapse bg-white text-left text-xs">
+                    <thead>
+                      <tr className="bg-stone-100 text-stone-600">
+                        <th className="px-3 py-2 font-semibold">{content.sections.price.itemLabel || "—"}</th>
+                        <th className="px-3 py-2 font-semibold">{content.sections.price.priceLabel || "—"}</th>
+                        <th className="px-3 py-2 font-semibold">{content.sections.price.column1Label || "—"}</th>
+                        <th className="px-3 py-2 font-semibold">{content.sections.price.column2Label || "—"}</th>
+                        <th className="px-3 py-2 font-semibold">{content.sections.price.bestForLabel || "—"}</th>
+                        <th className="px-3 py-2 font-semibold"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {tours.map((tour, i) => (
+                        <tr key={tour.id} className={`border-t border-stone-200 ${i % 2 ? "bg-stone-50" : ""}`}>
+                          <td className="px-3 py-2 font-medium text-stone-900">{tour.title}</td>
+                          <td className="px-3 py-2 text-stone-700">€{tour.price}</td>
+                          <td className="px-3 py-2 text-stone-700">{tour.duration}</td>
+                          <td className="px-3 py-2 text-stone-700">{tour.priceTableFeature || "No"}</td>
+                          <td className="px-3 py-2 text-stone-700">{tour.bestFor}</td>
+                          <td className="px-3 py-2 text-right">
+                            <Link href={`/admin/tours/${tour.id}`} className="font-medium text-seine-teal hover:underline">
+                              Edit →
+                            </Link>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
           </SectionCard>
 
           <SectionCard title="Footer" description="Shown at the bottom of every page." tone="sitewide">
