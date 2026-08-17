@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useEditor, EditorContent, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import HeadingExtension from "@tiptap/extension-heading";
+import HeadingExtension, { type Level } from "@tiptap/extension-heading";
 import Underline from "@tiptap/extension-underline";
 import Link from "@tiptap/extension-link";
 import Image from "@tiptap/extension-image";
@@ -41,7 +41,7 @@ const Heading = HeadingExtension.extend({
   addOptions() {
     return {
       ...this.parent?.(),
-      levels: [1, 2, 3],
+      levels: [1, 2, 3] as Level[],
     };
   },
   parseHTML() {
@@ -307,7 +307,11 @@ export default function TiptapArticleEditor({
   }) {
     if (!editor) return;
     const normalized = normalizeUrl(url);
-    const attrs: Record<string, any> = { href: normalized, target: null, rel: null };
+    const attrs: { href: string; target: string | null; rel: string | null } = {
+      href: normalized,
+      target: null,
+      rel: null,
+    };
     if (newTab) {
       attrs.target = "_blank";
       attrs.rel = nofollow ? "nofollow noopener noreferrer" : "noopener noreferrer";
