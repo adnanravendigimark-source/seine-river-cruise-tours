@@ -31,7 +31,7 @@ export default async function Hero() {
       </div>
 
       <div className="relative mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
-        <p className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-white backdrop-blur-sm">
+        <p className="inline-flex items-center gap-2 rounded-full border border-amber-400/30 bg-amber-400/10 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-amber-300 backdrop-blur-sm">
           {content.heroBadge}
         </p>
 
@@ -46,14 +46,14 @@ export default async function Hero() {
         <div className="mt-6 flex flex-wrap items-center gap-4">
           <a
             href={content.heroCtaPrimaryHref}
-            className="group inline-flex items-center gap-2 rounded-full bg-seine-amber px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-black/20 transition hover:bg-seine-amber/90"
+            className="group inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-600 px-7 py-3.5 text-sm font-bold text-white shadow-xl shadow-amber-500/25 transition-all duration-300 hover:scale-[1.03] hover:shadow-amber-500/35"
           >
             {content.heroCtaPrimaryText}
             <span className="transition group-hover:translate-x-0.5">→</span>
           </a>
           <a
             href={content.heroCtaSecondaryHref}
-            className="rounded-full border border-white/40 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+            className="rounded-full border border-white/30 bg-white/5 px-6 py-3.5 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-white/15"
           >
             {content.heroCtaSecondaryText}
           </a>

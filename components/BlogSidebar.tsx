@@ -41,7 +41,7 @@ export default async function BlogSidebar({
                 href={tour.href}
                 target="_blank"
                 rel="noopener nofollow sponsored"
-                className="rounded-full bg-seine-amber px-4 py-2 text-xs font-semibold text-white transition hover:bg-seine-amber/90"
+                className="rounded-full bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-600 px-4 py-2 text-xs font-bold text-white shadow-md shadow-amber-500/20 transition hover:scale-[1.02]"
               >
                 Book Now
               </a>

@@ -25,7 +25,7 @@ export default async function BlogSection() {
           </div>
           <Link
             href="/blog"
-            className="inline-flex items-center justify-center gap-2 self-start md:self-auto rounded-full border-2 border-seine-amber bg-white px-6 py-2.5 text-sm font-semibold text-stone-900 transition hover:bg-seine-amber hover:text-white shadow-sm hover:shadow-md"
+            className="inline-flex items-center justify-center gap-2 self-start md:self-auto rounded-full bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-600 px-6 py-2.5 text-sm font-bold text-white shadow-md shadow-amber-500/20 transition-all duration-300 hover:scale-[1.03] hover:shadow-amber-500/30"
           >
             <span>View All Articles</span>
             <span aria-hidden="true">→</span>
@@ -49,12 +49,12 @@ export default async function BlogSection() {
               </Link>
               <div className="flex flex-1 flex-col p-6">
                 <div className="flex items-center gap-3 text-xs">
-                  <span className="inline-flex rounded-full bg-seine-teal/10 px-2.5 py-0.5 font-semibold uppercase tracking-wide text-seine-teal">
+                  <span className="inline-flex rounded-full bg-emerald-50 px-2.5 py-0.5 font-bold uppercase tracking-wide text-emerald-700">
                     {post.category}
                   </span>
                   {post.readTime && <span className="text-stone-900/40">{post.readTime}</span>}
                 </div>
-                <h3 className="mt-3 font-display text-xl font-bold leading-snug text-stone-900 group-hover:text-seine-amber">
+                <h3 className="mt-3 font-display text-xl font-bold leading-snug text-stone-900 group-hover:text-amber-600">
                   <Link href={`/blog/${post.slug}`}>{post.title}</Link>
                 </h3>
                 {post.excerpt && (
@@ -63,7 +63,7 @@ export default async function BlogSection() {
                 <div className="mt-auto pt-6">
                   <Link
                     href={`/blog/${post.slug}`}
-                    className="inline-flex items-center gap-1.5 text-sm font-semibold text-seine-teal transition group-hover:text-seine-amber group-hover:gap-2"
+                    className="inline-flex items-center gap-1.5 text-sm font-semibold text-emerald-700 transition group-hover:text-amber-600 group-hover:gap-2"
                   >
                     <span>Read Article</span>
                     <span aria-hidden="true">→</span>
@@ -77,7 +77,7 @@ export default async function BlogSection() {
         <div className="mt-10 text-center md:hidden">
           <Link
             href="/blog"
-            className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-seine-amber px-6 py-3 text-sm font-semibold text-white transition hover:bg-seine-amber/90 shadow-sm"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-600 px-6 py-3 text-sm font-bold text-white shadow-md shadow-amber-500/20 transition hover:scale-[1.02]"
           >
             <span>View All Articles</span>
             <span aria-hidden="true">→</span>

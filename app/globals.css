@@ -31,10 +31,10 @@ body {
    are what the live site already looked like before that panel existed,
    so an untouched site renders pixel-identical to before. */
 :root {
-  --color-seine-teal: 12 116 137; /* #0c7489 */
-  --color-seine-amber: 232 130 58; /* #e8823a */
-  --color-seine-ink: 10 46 53; /* #0a2e35 */
-  --color-gold-400: 224 169 74; /* #e0a94a */
+  --color-seine-teal: 134 25 143; /* #86198f - Parisian Velvet Plum */
+  --color-seine-amber: 245 158 11; /* #f59e0b - Radiant French Amber */
+  --color-seine-ink: 30 5 36; /* #1e0524 - Deep Parisian Midnight Plum */
+  --color-gold-400: 251 191 36; /* #fbbf24 - Luminous Warm Gold */
 }
 
 /* Shared typography for admin-entered rich text (RichTextEditor.tsx),

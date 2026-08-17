@@ -61,7 +61,7 @@ export default async function WhatYouSee() {
           <p className="text-sm font-medium text-stone-900">{s.ctaText}</p>
           <a
             href={s.ctaHref}
-            className="shrink-0 rounded-full bg-seine-amber px-6 py-3 text-sm font-semibold text-white transition hover:bg-seine-amber/90"
+            className="shrink-0 rounded-full bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-600 px-6 py-3 text-sm font-bold text-white shadow-md shadow-amber-500/20 transition-all duration-300 hover:scale-[1.03] hover:shadow-amber-500/30"
           >
             {s.ctaButtonText}
           </a>

@@ -98,13 +98,13 @@ export default function TourCard({
                 href={tour.href}
                 target="_blank"
                 rel="noopener nofollow sponsored"
-                className="flex shrink-0 items-center gap-1.5 rounded-full bg-gradient-to-r from-gold-500 to-gold-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-90"
+                className="flex shrink-0 items-center gap-1.5 rounded-full bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-600 px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-amber-500/20 transition-all duration-300 hover:scale-[1.03] hover:shadow-amber-500/30"
               >
                 Book Now
               </a>
             </div>
             {recommended.urgencyText && (
-              <p className="mt-2.5 flex items-center gap-1 text-[11px] font-semibold text-gold-600">
+              <p className="mt-2.5 flex items-center gap-1 text-[11px] font-semibold text-amber-700">
                 <LockIcon className="h-3 w-3" /> {recommended.urgencyText}
               </p>
             )}
@@ -125,7 +125,7 @@ export default function TourCard({
               href={tour.href}
               target="_blank"
               rel="noopener nofollow sponsored"
-              className="rounded-full bg-seine-amber px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-seine-amber/90 hover:shadow-md"
+              className="rounded-full bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-600 px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-amber-500/20 transition-all duration-300 hover:scale-[1.03] hover:shadow-amber-500/30"
             >
               Book Now
             </a>

@@ -227,10 +227,10 @@ export const DEFAULT_FOOTER: FooterContent = {
 };
 
 export const DEFAULT_THEME: ThemeColors = {
-  primary: "#e8823a",
-  secondary: "#0c7489",
-  dark: "#0a2e35",
-  accent: "#e0a94a",
+  primary: "#86198f",   // Parisian Velvet Plum
+  secondary: "#f59e0b", // Radiant French Amber
+  dark: "#1e0524",      // Deep Parisian Midnight Plum
+  accent: "#fbbf24",    // Luminous Warm Gold
 };
 
 export const DEFAULT_GALLERY: GalleryImage[] = [
