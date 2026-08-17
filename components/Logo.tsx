@@ -25,12 +25,15 @@ export default function Logo({
   if (variant === "stacked") {
     return (
       <Link href="/" className={`inline-flex flex-col items-center gap-3.5 ${className}`}>
-        <span className="relative block h-24 w-32 sm:h-28 sm:w-36 transition-transform duration-300 hover:scale-105">
+        {/* Sized to the skyline artwork's actual ~2.17:1 aspect ratio
+            (wide/flat) rather than the old squarer box, so it fills its
+            space instead of shrinking inside empty letterbox padding. */}
+        <span className="relative block h-16 w-[139px] sm:h-20 sm:w-[174px] transition-transform duration-300 hover:scale-105">
           <Image
             src={customSrc || logoImg}
             alt={alt}
             fill
-            sizes="160px"
+            sizes="174px"
             className="object-contain"
             priority
           />
@@ -52,13 +55,13 @@ export default function Logo({
   }
 
   const image = (
-    <span className="relative block h-11 w-14 overflow-hidden sm:h-12 sm:w-16 transition-transform duration-300 group-hover:scale-105">
+    <span className="relative block h-9 w-[78px] overflow-hidden sm:h-10 sm:w-[87px] transition-transform duration-300 group-hover:scale-105">
       <Image
         src={customSrc || logoImg}
         alt={alt}
         fill
         priority
-        sizes="100px"
+        sizes="87px"
         className="object-contain"
       />
     </span>
