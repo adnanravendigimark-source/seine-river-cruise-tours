@@ -188,6 +188,25 @@ function markdownToHtml(markdown: string, allowedHeadings: (1 | 2 | 3)[]): strin
   return htmlParts.join("");
 }
 
+// Real pages / Word / Google Docs almost always carry proper HTML on the
+// clipboard, but plain everyday article text very often ALSO happens to
+// match our markdown heuristics below (a numbered intro like "1. Book
+// tickets early", a stray "**word**", a "|" somewhere in a sentence). When
+// that happens we must not throw the good HTML away — only fall back to
+// the markdown/plain-text path when there's no real structure to keep.
+function hasRichHtmlStructure(rawHtml: string): boolean {
+  try {
+    const doc = new DOMParser().parseFromString(rawHtml, "text/html");
+    const body = doc.body;
+    if (body.querySelector("h1, h2, h3, h4, h5, h6, table, ul, ol, blockquote")) return true;
+    if (body.querySelectorAll("p").length > 1) return true;
+    if (body.querySelector("strong, b, em, i, u, a")) return true;
+    return false;
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Cleans and normalizes HTML pasted from rich sources (Google Docs, Word, ChatGPT web copy)
  * ensuring headings are mapped to allowed levels, stripping unwanted fonts/colors, while
@@ -198,6 +217,23 @@ function cleanRichHtml(rawHtml: string, allowedHeadings: (1 | 2 | 3)[]): string 
     const parser = new DOMParser();
     const doc = parser.parseFromString(rawHtml, "text/html");
     const body = doc.body;
+
+    // Word and Google Docs frequently mark headings as styled <p> elements
+    // instead of real <h1>-<h6> tags — e.g. Word's clipboard HTML uses
+    // <p style="mso-style-name:'Heading 2'"> or <p class="MsoHeading2">.
+    // Promote these to real heading tags first so the normalization pass
+    // below (which only looks at actual h1-h6 tags) catches them too.
+    const headingParas = body.querySelectorAll("p");
+    headingParas.forEach((p) => {
+      const signature = `${p.getAttribute("style") || ""} ${p.getAttribute("class") || ""}`;
+      const match = signature.match(/heading\s*(\d)/i);
+      if (!match) return;
+      const level = Math.min(3, Math.max(1, parseInt(match[1], 10)));
+      const tag = `h${level}`;
+      const replacement = doc.createElement(tag);
+      replacement.innerHTML = p.innerHTML;
+      p.replaceWith(replacement);
+    });
 
     // Normalize headings
     const headings = body.querySelectorAll("h1, h2, h3, h4, h5, h6");
@@ -380,6 +416,17 @@ export default function RichTextEditor({
 
     let finalHtml = "";
 
+    // Real HTML (a genuine h1/h2/table/list/etc. structure) always wins —
+    // ordinary article text very often ALSO happens to match the markdown
+    // patterns below (a numbered intro like "1. Book tickets early", a
+    // stray "**word**", a "|" in a sentence), so checking markdown-ness
+    // first used to throw away perfectly good pasted HTML from real blogs,
+    // Word, and Google Docs and re-derive a flattened version from the
+    // crude plain text instead — which is where headings and tables were
+    // getting lost. Only fall back to the markdown/plain-text path when
+    // there's no real HTML structure to keep.
+    const hasRichHtml = !!pastedHtml && hasRichHtmlStructure(pastedHtml);
+
     const isMarkdown =
       pastedText &&
       (/(^|\n)#{1,6}\s+/.test(pastedText) ||
@@ -389,11 +436,13 @@ export default function RichTextEditor({
         /\[[^\]]+\]\([^)]+\)/.test(pastedText) ||
         /(^|\n)\|.*\|/.test(pastedText));
 
-    if (pastedHtml && !isMarkdown) {
+    if (hasRichHtml) {
       finalHtml = cleanRichHtml(pastedHtml, allowedHeadings);
     } else if (pastedText) {
       if (isMarkdown) {
         finalHtml = markdownToHtml(pastedText, allowedHeadings);
+      } else if (pastedHtml) {
+        finalHtml = cleanRichHtml(pastedHtml, allowedHeadings);
       } else {
         const paras = pastedText.split(/\r?\n\r?\n/);
         finalHtml = paras
