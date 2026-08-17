@@ -56,6 +56,20 @@ export interface WhySection {
   ctaHref: string;
 }
 
+// "Seine River Highlights" trust/highlights section, right below the
+// "What You See" section — see components/RiverHighlights.tsx.
+export interface HighlightCard {
+  icon: string; // emoji, rendered as-is
+  title: string;
+  body: string;
+}
+export interface HighlightsSection {
+  eyebrow: string;
+  heading: string;
+  subheading: string;
+  cards: HighlightCard[];
+}
+
 // "Illuminations Cruise" (evening cruise with music) section.
 export interface TowerSection {
   eyebrow: string;
@@ -71,6 +85,7 @@ export interface TowerSection {
 export interface PracticalSection {
   hoursHeading: string;
   hours: HoursRow[];
+  hoursNote: string;
   addressHeading: string;
   address: string;
   metro: string;
@@ -92,14 +107,76 @@ export interface PriceSection {
   column1Label: string;
   column2Label: string;
   bestForLabel: string;
+  // Label on each row's action button (kept separate from the site-wide
+  // "Book Now" button text since this table's cells are narrow).
+  bookLabel: string;
+}
+
+// Wrapper heading above the FAQ accordion — see components/FAQSection.tsx.
+// The questions/answers themselves are separately admin-editable via
+// /admin/faqs (lib/data.ts's getFaqs()).
+export interface FaqSection {
+  heading: string;
+}
+
+// Custom 404 page — see app/not-found.tsx.
+export interface NotFoundSection {
+  heading: string;
+  body: string;
+  primaryButtonText: string;
+  primaryButtonHref: string;
+  secondaryButtonText: string;
+  secondaryButtonHref: string;
+}
+
+// Homepage "From the Blog" teaser section — see components/BlogSection.tsx.
+// Distinct from the /blog listing page itself (BlogPageSection below).
+export interface BlogTeaserSection {
+  eyebrow: string;
+  heading: string;
+  subheading: string;
+  viewAllText: string;
+  readArticleText: string;
+}
+
+// The /blog listing page, plus the small wrapper labels shared by every
+// blog article page (Back link, Quick Answer/Table of Contents labels,
+// Related Guides/Articles headings, sidebar CTA) — see app/blog/page.tsx,
+// app/blog/[slug]/page.tsx, components/QuickAnswer.tsx,
+// components/TableOfContents.tsx, components/RelatedPosts.tsx, and
+// components/BlogSidebar.tsx. The posts themselves are edited separately
+// from /admin/posts.
+export interface BlogPageSection {
+  eyebrow: string;
+  heading: string;
+  subheading: string;
+  emptyStateText: string;
+  featuredLinkText: string;
+  ctaHeading: string;
+  ctaButtonText: string;
+  backToGuidesText: string;
+  quickAnswerLabel: string;
+  tocLabel: string;
+  relatedGuidesHeading: string;
+  sidebarRelatedHeading: string;
+  sidebarRecommendedBadge: string;
+  sidebarCompareLinkText: string;
+  // Label above the inline mid-article tour promo card — see
+  // components/TourPromoCard.tsx (rendered via RecommendedTour.tsx).
+  promoRecommendedText: string;
 }
 
 export interface HomepageSections {
   tours: TourSection;
+  highlights: HighlightsSection;
   why: WhySection;
   tower: TowerSection;
   practical: PracticalSection;
   price: PriceSection;
+  faq: FaqSection;
+  notFound: NotFoundSection;
+  blogTeaser: BlogTeaserSection;
+  blogPage: BlogPageSection;
 }
 
 // Site-wide navbar — edited from the Homepage admin tab for simplicity,
@@ -107,6 +184,17 @@ export interface HomepageSections {
 export interface HeaderContent {
   logoImage: string; // blank = use the bundled Logo.png asset
   logoAlt: string;
+  // The two-line wordmark text shown next to (or under) the logo image —
+  // see components/Logo.tsx. Shown regardless of whether logoImage is set.
+  logoLine1: string;
+  logoLine2: string;
+  // The leading "Home" crumb every Breadcrumbs trail starts with — see
+  // components/Breadcrumbs.tsx.
+  homeLabel: string;
+  // Shared label for every "Book Now" button site-wide (tour cards, the
+  // mobile sticky bar, blog sidebar) — see components/TourCard.tsx,
+  // TourPromoCard.tsx, FeaturedTour.tsx, BlogSidebar.tsx.
+  bookNowText: string;
   navLinks: NavLink[];
   ctaText: string;
   ctaHref: string;
@@ -194,6 +282,10 @@ export interface HomepageContent {
 export const DEFAULT_HEADER: HeaderContent = {
   logoImage: "",
   logoAlt: "Seine River Cruise Tours",
+  logoLine1: "Seine River",
+  logoLine2: "Cruise Tours",
+  homeLabel: "Home",
+  bookNowText: "Book Now",
   navLinks: [
     { label: "Home", href: "/" },
     { label: "About Us", href: "/about" },
@@ -270,6 +362,34 @@ export const DEFAULT_SECTIONS: HomepageSections = {
     subheading:
       "Three clear options — a quick sightseeing cruise, a dinner cruise with live music, and a budget-friendly evening cruise. Every departure covers the same iconic stretch of river.",
   },
+  highlights: {
+    eyebrow: "Why the Seine",
+    heading: "Seine River Highlights",
+    subheading:
+      "The Seine isn't just a way to get between landmarks — it's a viewpoint on its own. Here's what makes the ride itself worth booking.",
+    cards: [
+      {
+        title: "Iconic Waterfront",
+        body: "The Eiffel Tower, Musée d'Orsay, and the Louvre all sit directly on the water — no other viewpoint in Paris strings them together in one hour.",
+        icon: "🗼",
+      },
+      {
+        title: "Notre-Dame & Île de la Cité",
+        body: "Every route loops around the island where Paris began, passing Notre-Dame Cathedral and the Conciergerie from the river.",
+        icon: "⛪",
+      },
+      {
+        title: "Open-Air Decks",
+        body: "Evening and combo cruises open their upper decks so you can feel the river air and get an unobstructed line of sight for photos.",
+        icon: "🌬️",
+      },
+      {
+        title: "Evening Glow",
+        body: "After sunset, every bridge and monument is floodlit, and the Eiffel Tower sparkles for five minutes on the hour, every hour.",
+        icon: "✨",
+      },
+    ],
+  },
   why: {
     heading: "What You Actually See on a Seine River Cruise",
     intro:
@@ -345,6 +465,7 @@ export const DEFAULT_SECTIONS: HomepageSections = {
       { range: "April – September", time: "10:00 AM – 11:00 PM" },
       { range: "October", time: "10:15 AM – 10:30 PM" },
     ],
+    hoursNote: "Departures every 30–45 minutes; exact times vary by operator.",
     addressHeading: "Boarding Points",
     address:
       "Port de la Bourdonnais — 75007, at the Eiffel Tower. RER C (Champ de Mars / Tour Eiffel) or Métro 6 (Bir-Hakeim).\nPont de l'Alma — near the Champs-Élysées, used by several evening departures.\nPont Neuf — Île de la Cité, closest to Notre-Dame and the Louvre.",
@@ -363,6 +484,43 @@ export const DEFAULT_SECTIONS: HomepageSections = {
     column1Label: "Duration",
     column2Label: "Meal Included",
     bestForLabel: "Best For",
+    bookLabel: "Book",
+  },
+  faq: {
+    heading: "Seine River Cruise FAQs",
+  },
+  notFound: {
+    heading: "Looks like this page missed the boat.",
+    body: "The page you're looking for doesn't exist or may have moved. Try one of these instead.",
+    primaryButtonText: "Compare River Cruises & Tickets →",
+    primaryButtonHref: "/#tours",
+    secondaryButtonText: "Read the Travel Guide",
+    secondaryButtonHref: "/blog",
+  },
+  blogTeaser: {
+    eyebrow: "From the Blog",
+    heading: "Seine River Cruise Guides & Tips",
+    subheading:
+      "Expert advice, dinner cruise comparisons, and insider tips to help you plan your Paris river experience.",
+    viewAllText: "View All Articles",
+    readArticleText: "Read Article",
+  },
+  blogPage: {
+    eyebrow: "River Cruise Blog",
+    heading: "Seine River Cruise Travel Guide",
+    subheading: "Practical guides to help you plan your visit and pick the right cruise.",
+    emptyStateText: "No articles published yet — check back soon.",
+    featuredLinkText: "Read the guide",
+    ctaHeading: "Ready to book your Seine River cruise?",
+    ctaButtonText: "Compare Seine River Cruises & Tickets →",
+    backToGuidesText: "← All guides",
+    quickAnswerLabel: "Quick Answer",
+    tocLabel: "In This Guide",
+    relatedGuidesHeading: "Related Guides",
+    sidebarRelatedHeading: "Related Articles",
+    sidebarRecommendedBadge: "Recommended",
+    sidebarCompareLinkText: "Compare all cruises & tickets →",
+    promoRecommendedText: "Recommended for you",
   },
 };
 
@@ -464,10 +622,15 @@ function rowToHomepage(row: any): HomepageContent {
     featuredReasons: parseReasons(row.featured_reasons),
     sections: {
       tours: { ...DEFAULT_SECTIONS.tours, ...sectionsRaw.tours },
+      highlights: { ...DEFAULT_SECTIONS.highlights, ...sectionsRaw.highlights },
       why: { ...DEFAULT_SECTIONS.why, ...sectionsRaw.why },
       tower: { ...DEFAULT_SECTIONS.tower, ...sectionsRaw.tower },
       practical: { ...DEFAULT_SECTIONS.practical, ...sectionsRaw.practical },
       price: { ...DEFAULT_SECTIONS.price, ...sectionsRaw.price },
+      faq: { ...DEFAULT_SECTIONS.faq, ...sectionsRaw.faq },
+      notFound: { ...DEFAULT_SECTIONS.notFound, ...sectionsRaw.notFound },
+      blogTeaser: { ...DEFAULT_SECTIONS.blogTeaser, ...sectionsRaw.blogTeaser },
+      blogPage: { ...DEFAULT_SECTIONS.blogPage, ...sectionsRaw.blogPage },
     },
     header: parseJsonWithDefault<HeaderContent>(row.header_json, DEFAULT_HEADER),
     footer: parseJsonWithDefault<FooterContent>(row.footer_json, DEFAULT_FOOTER),

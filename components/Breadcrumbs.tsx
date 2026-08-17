@@ -1,12 +1,15 @@
 import Link from "next/link";
 import { buildBreadcrumbJsonLd, type BreadcrumbItem } from "@/lib/seo";
+import { getSiteChrome } from "@/lib/homepage";
 
 // Visual breadcrumb trail + its matching BreadcrumbList structured data,
 // rendered together so the two can never drift out of sync (one always
 // reflects the other). `items` should NOT include "Home" — it's added
-// automatically here as the first entry.
-export default function Breadcrumbs({ items }: { items: BreadcrumbItem[] }) {
-  const full = [{ name: "Home", path: "/" }, ...items];
+// automatically here as the first entry. The "Home" label itself is
+// editable from /admin/homepage (see lib/homepage.ts's HeaderContent).
+export default async function Breadcrumbs({ items }: { items: BreadcrumbItem[] }) {
+  const { header } = await getSiteChrome();
+  const full = [{ name: header.homeLabel, path: "/" }, ...items];
   const jsonLd = buildBreadcrumbJsonLd(full);
 
   return (

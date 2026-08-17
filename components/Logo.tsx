@@ -8,12 +8,16 @@ export default function Logo({
   theme = "light",
   src = "",
   alt = "Seine River Cruise Tours",
+  line1 = "Seine River",
+  line2 = "Cruise Tours",
 }: {
   className?: string;
   variant?: "compact" | "stacked";
   theme?: "light" | "dark";
   src?: string;
   alt?: string;
+  line1?: string;
+  line2?: string;
 }) {
   const isDark = theme === "dark";
   const customSrc = src?.trim();
@@ -37,10 +41,10 @@ export default function Logo({
               isDark ? "text-white" : "text-stone-900"
             }`}
           >
-            Seine River
+            {line1}
           </span>
           <span className="block font-sans text-xs font-extrabold uppercase tracking-[0.32em] bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 bg-clip-text text-transparent">
-            Cruise Tours
+            {line2}
           </span>
         </div>
       </Link>
@@ -76,10 +80,10 @@ export default function Logo({
             isDark ? "text-white" : "text-stone-900"
           }`}
         >
-          Seine River
+          {line1}
         </span>
         <span className="block whitespace-nowrap font-sans text-[10px] font-extrabold uppercase tracking-[0.32em] bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-500 bg-clip-text text-transparent">
-          Cruise Tours
+          {line2}
         </span>
       </div>
     </span>

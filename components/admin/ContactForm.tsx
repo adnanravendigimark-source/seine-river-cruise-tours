@@ -97,6 +97,10 @@ export default function ContactForm({ initial }: { initial: ContactPageContent }
       <SectionCard title="Email card">
         <div className="grid gap-5 sm:grid-cols-2">
           <div>
+            <label className={labelClass}>Label above the email</label>
+            <input value={contact.emailLabel} onChange={(e) => update("emailLabel", e.target.value)} className={inputClass} placeholder="Email us directly" />
+          </div>
+          <div>
             <label className={labelClass}>Contact email</label>
             <input type="email" required value={contact.email} onChange={(e) => update("email", e.target.value)} className={inputClass} />
           </div>

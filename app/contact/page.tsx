@@ -54,7 +54,7 @@ export default async function ContactPage() {
             <MailIcon className="h-6 w-6" />
           </span>
           <div>
-            <p className="text-sm text-stone-900/60">Email us directly</p>
+            <p className="text-sm text-stone-900/60">{contact.emailLabel}</p>
             <a
               href={`mailto:${contact.email}`}
               className="mt-1 block break-all font-display text-lg font-semibold text-seine-amber"

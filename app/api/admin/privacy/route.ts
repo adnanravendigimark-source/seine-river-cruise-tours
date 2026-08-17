@@ -16,6 +16,8 @@ export async function GET() {
 export async function PUT(req: Request) {
   const body = await req.json().catch(() => null);
   const title = (body?.title || "").trim();
+  const lastUpdatedLabel = body?.lastUpdatedLabel ?? "";
+  const emptyStateText = body?.emptyStateText ?? "";
   const content = Array.isArray(body?.content) ? body.content : [];
   const noIndex = !!body?.noIndex;
   const noFollow = !!body?.noFollow;
@@ -33,6 +35,8 @@ export async function PUT(req: Request) {
   try {
     await savePrivacyPolicy({
       title,
+      lastUpdatedLabel,
+      emptyStateText,
       content,
       noIndex,
       noFollow,

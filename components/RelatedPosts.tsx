@@ -1,14 +1,15 @@
 import Link from "next/link";
 import SafeImage from "./SafeImage";
 import { getRelatedPosts } from "@/lib/posts";
+import { getHomepageContent } from "@/lib/homepage";
 
 export default async function RelatedPosts({ slug }: { slug: string }) {
-  const related = await getRelatedPosts(slug);
+  const [related, { sections }] = await Promise.all([getRelatedPosts(slug), getHomepageContent()]);
   if (related.length === 0) return null;
 
   return (
     <section className="border-t border-stone-900/10 pt-10">
-      <p className="font-display text-lg font-semibold text-stone-900">Related Guides</p>
+      <p className="font-display text-lg font-semibold text-stone-900">{sections.blogPage.relatedGuidesHeading}</p>
       <div className="mt-5 grid gap-5 sm:grid-cols-2">
         {related.map((post) => (
           <Link

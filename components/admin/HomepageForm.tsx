@@ -17,6 +17,7 @@ import type {
   TimelineRow,
   HoursRow,
   GalleryImage,
+  HighlightCard,
 } from "@/lib/homepage";
 import type { Tour } from "@/lib/data";
 
@@ -138,6 +139,43 @@ export default function HomepageForm({ initial, tours }: { initial: HomepageCont
     setSaved(false);
   }
 
+  function updateHighlights(patch: Partial<HomepageContent["sections"]["highlights"]>) {
+    setContent((c) => ({
+      ...c,
+      sections: { ...c.sections, highlights: { ...c.sections.highlights, ...patch } },
+    }));
+    setSaved(false);
+  }
+
+  function updateFaq(patch: Partial<HomepageContent["sections"]["faq"]>) {
+    setContent((c) => ({ ...c, sections: { ...c.sections, faq: { ...c.sections.faq, ...patch } } }));
+    setSaved(false);
+  }
+
+  function updateNotFound(patch: Partial<HomepageContent["sections"]["notFound"]>) {
+    setContent((c) => ({
+      ...c,
+      sections: { ...c.sections, notFound: { ...c.sections.notFound, ...patch } },
+    }));
+    setSaved(false);
+  }
+
+  function updateBlogTeaser(patch: Partial<HomepageContent["sections"]["blogTeaser"]>) {
+    setContent((c) => ({
+      ...c,
+      sections: { ...c.sections, blogTeaser: { ...c.sections.blogTeaser, ...patch } },
+    }));
+    setSaved(false);
+  }
+
+  function updateBlogPage(patch: Partial<HomepageContent["sections"]["blogPage"]>) {
+    setContent((c) => ({
+      ...c,
+      sections: { ...c.sections, blogPage: { ...c.sections.blogPage, ...patch } },
+    }));
+    setSaved(false);
+  }
+
   const focusChecklist = useMemo(() => {
     const kw = content.focusKeyword.trim().toLowerCase();
     if (!kw) return null;
@@ -231,6 +269,22 @@ export default function HomepageForm({ initial, tours }: { initial: HomepageCont
                 <input value={content.header.ctaHref} onChange={(e) => updateHeader({ ctaHref: e.target.value })} className={inputClass} />
               </Field>
             </div>
+            <div className="grid gap-5 sm:grid-cols-2">
+              <Field label="Logo text — line 1">
+                <input value={content.header.logoLine1} onChange={(e) => updateHeader({ logoLine1: e.target.value })} className={inputClass} />
+              </Field>
+              <Field label="Logo text — line 2">
+                <input value={content.header.logoLine2} onChange={(e) => updateHeader({ logoLine2: e.target.value })} className={inputClass} />
+              </Field>
+            </div>
+            <div className="grid gap-5 sm:grid-cols-2">
+              <Field label={'Breadcrumb "Home" label'} hint="Shown as the first crumb on blog article pages.">
+                <input value={content.header.homeLabel} onChange={(e) => updateHeader({ homeLabel: e.target.value })} className={inputClass} />
+              </Field>
+              <Field label={'Site-wide "Book Now" button text'} hint="Used on every tour card, the mobile sticky bar, and the blog sidebar.">
+                <input value={content.header.bookNowText} onChange={(e) => updateHeader({ bookNowText: e.target.value })} className={inputClass} />
+              </Field>
+            </div>
           </SectionCard>
 
           <SectionCard title="Hero" description="The full-width banner at the top of the homepage.">
@@ -267,7 +321,38 @@ export default function HomepageForm({ initial, tours }: { initial: HomepageCont
             </div>
           </SectionCard>
 
-          <SectionCard title="Tour Grid section" description="The heading + intro text directly above the tour cards, right below the hero.">
+          <SectionCard title="Seine River Highlights section" description="The dark trust/highlights band right below the hero.">
+            <div className="grid gap-5 sm:grid-cols-2">
+              <Field label="Eyebrow">
+                <input value={content.sections.highlights.eyebrow} onChange={(e) => updateHighlights({ eyebrow: e.target.value })} className={inputClass} />
+              </Field>
+              <Field label="Heading (H2)">
+                <input value={content.sections.highlights.heading} onChange={(e) => updateHighlights({ heading: e.target.value })} className={inputClass} />
+              </Field>
+            </div>
+            <Field label="Subheading">
+              <textarea rows={2} value={content.sections.highlights.subheading} onChange={(e) => updateHighlights({ subheading: e.target.value })} className={inputClass} />
+            </Field>
+            <Field label="Highlight cards">
+              <RepeatableList<HighlightCard>
+                items={content.sections.highlights.cards}
+                onChange={(cards) => updateHighlights({ cards })}
+                newItem={() => ({ icon: "✨", title: "New Highlight", body: "" })}
+                addLabel="+ Add card"
+                renderItem={(card, upd) => (
+                  <div className="space-y-2">
+                    <div className="grid gap-2 sm:grid-cols-[4rem_1fr]">
+                      <input value={card.icon} onChange={(e) => upd({ ...card, icon: e.target.value })} placeholder="🗼" className={inputClass} />
+                      <input value={card.title} onChange={(e) => upd({ ...card, title: e.target.value })} placeholder="Title" className={inputClass} />
+                    </div>
+                    <textarea rows={2} value={card.body} onChange={(e) => upd({ ...card, body: e.target.value })} placeholder="Card body text" className={inputClass} />
+                  </div>
+                )}
+              />
+            </Field>
+          </SectionCard>
+
+          <SectionCard title="Tour Grid section" description="The heading + intro text directly above the tour cards.">
             <Field label="Section heading (H2)">
               <input value={content.sections.tours.heading} onChange={(e) => updateTours({ heading: e.target.value })} className={inputClass} />
             </Field>
@@ -398,6 +483,9 @@ export default function HomepageForm({ initial, tours }: { initial: HomepageCont
                 )}
               />
             </Field>
+            <Field label="Small note under the hours table">
+              <input value={content.sections.practical.hoursNote} onChange={(e) => updatePractical({ hoursNote: e.target.value })} className={inputClass} />
+            </Field>
             <div className="grid gap-5 sm:grid-cols-2">
               <Field label="Address heading">
                 <input value={content.sections.practical.addressHeading} onChange={(e) => updatePractical({ addressHeading: e.target.value })} className={inputClass} />
@@ -439,6 +527,9 @@ export default function HomepageForm({ initial, tours }: { initial: HomepageCont
               </Field>
               <Field label="Column: best for" hint='e.g. "Best For"'>
                 <input value={content.sections.price.bestForLabel} onChange={(e) => updatePrice({ bestForLabel: e.target.value })} className={inputClass} />
+              </Field>
+              <Field label="Row button label" hint='e.g. "Book"'>
+                <input value={content.sections.price.bookLabel} onChange={(e) => updatePrice({ bookLabel: e.target.value })} className={inputClass} />
               </Field>
             </div>
             <Field label="Small note under the table">
@@ -487,6 +578,116 @@ export default function HomepageForm({ initial, tours }: { initial: HomepageCont
                   </table>
                 </div>
               )}
+            </div>
+          </SectionCard>
+
+          <SectionCard title="Blog teaser section" description={'The "From the Blog" section on the homepage, right above the FAQ.'}>
+            <div className="grid gap-5 sm:grid-cols-2">
+              <Field label="Eyebrow">
+                <input value={content.sections.blogTeaser.eyebrow} onChange={(e) => updateBlogTeaser({ eyebrow: e.target.value })} className={inputClass} />
+              </Field>
+              <Field label="Heading (H2)">
+                <input value={content.sections.blogTeaser.heading} onChange={(e) => updateBlogTeaser({ heading: e.target.value })} className={inputClass} />
+              </Field>
+            </div>
+            <Field label="Subheading">
+              <textarea rows={2} value={content.sections.blogTeaser.subheading} onChange={(e) => updateBlogTeaser({ subheading: e.target.value })} className={inputClass} />
+            </Field>
+            <div className="grid gap-5 sm:grid-cols-2">
+              <Field label={'"View all" button text'}>
+                <input value={content.sections.blogTeaser.viewAllText} onChange={(e) => updateBlogTeaser({ viewAllText: e.target.value })} className={inputClass} />
+              </Field>
+              <Field label={'"Read article" link text'}>
+                <input value={content.sections.blogTeaser.readArticleText} onChange={(e) => updateBlogTeaser({ readArticleText: e.target.value })} className={inputClass} />
+              </Field>
+            </div>
+          </SectionCard>
+
+          <SectionCard title="FAQ section" description="The questions and answers themselves are edited from the FAQs admin page — this is just the heading above them.">
+            <Field label="Heading (H2)">
+              <input value={content.sections.faq.heading} onChange={(e) => updateFaq({ heading: e.target.value })} className={inputClass} />
+            </Field>
+          </SectionCard>
+
+          <SectionCard title="Blog pages" description="Shared labels used across the blog listing page and every article page (not the posts themselves — edit those from /admin/posts).">
+            <div className="grid gap-5 sm:grid-cols-2">
+              <Field label="Listing page eyebrow">
+                <input value={content.sections.blogPage.eyebrow} onChange={(e) => updateBlogPage({ eyebrow: e.target.value })} className={inputClass} />
+              </Field>
+              <Field label="Listing page heading (H1)">
+                <input value={content.sections.blogPage.heading} onChange={(e) => updateBlogPage({ heading: e.target.value })} className={inputClass} />
+              </Field>
+            </div>
+            <Field label="Listing page subheading">
+              <input value={content.sections.blogPage.subheading} onChange={(e) => updateBlogPage({ subheading: e.target.value })} className={inputClass} />
+            </Field>
+            <div className="grid gap-5 sm:grid-cols-2">
+              <Field label="Empty-state message" hint="Shown when there are no posts yet.">
+                <input value={content.sections.blogPage.emptyStateText} onChange={(e) => updateBlogPage({ emptyStateText: e.target.value })} className={inputClass} />
+              </Field>
+              <Field label={'Featured post "Read the guide" link text'}>
+                <input value={content.sections.blogPage.featuredLinkText} onChange={(e) => updateBlogPage({ featuredLinkText: e.target.value })} className={inputClass} />
+              </Field>
+            </div>
+            <div className="grid gap-5 sm:grid-cols-2">
+              <Field label="Bottom CTA heading">
+                <input value={content.sections.blogPage.ctaHeading} onChange={(e) => updateBlogPage({ ctaHeading: e.target.value })} className={inputClass} />
+              </Field>
+              <Field label="Bottom CTA button text">
+                <input value={content.sections.blogPage.ctaButtonText} onChange={(e) => updateBlogPage({ ctaButtonText: e.target.value })} className={inputClass} />
+              </Field>
+            </div>
+            <div className="grid gap-5 sm:grid-cols-2">
+              <Field label={'"Back to all guides" link text'}>
+                <input value={content.sections.blogPage.backToGuidesText} onChange={(e) => updateBlogPage({ backToGuidesText: e.target.value })} className={inputClass} />
+              </Field>
+              <Field label={'"Quick Answer" callout label'}>
+                <input value={content.sections.blogPage.quickAnswerLabel} onChange={(e) => updateBlogPage({ quickAnswerLabel: e.target.value })} className={inputClass} />
+              </Field>
+              <Field label={'"In This Guide" box label'}>
+                <input value={content.sections.blogPage.tocLabel} onChange={(e) => updateBlogPage({ tocLabel: e.target.value })} className={inputClass} />
+              </Field>
+              <Field label="Related Guides heading">
+                <input value={content.sections.blogPage.relatedGuidesHeading} onChange={(e) => updateBlogPage({ relatedGuidesHeading: e.target.value })} className={inputClass} />
+              </Field>
+            </div>
+            <p className="text-xs font-medium text-stone-500">Sidebar (shown next to every article)</p>
+            <div className="grid gap-5 sm:grid-cols-2">
+              <Field label="Recommended tour badge">
+                <input value={content.sections.blogPage.sidebarRecommendedBadge} onChange={(e) => updateBlogPage({ sidebarRecommendedBadge: e.target.value })} className={inputClass} />
+              </Field>
+              <Field label="Related Articles heading">
+                <input value={content.sections.blogPage.sidebarRelatedHeading} onChange={(e) => updateBlogPage({ sidebarRelatedHeading: e.target.value })} className={inputClass} />
+              </Field>
+              <Field label="Compare-all-cruises link text">
+                <input value={content.sections.blogPage.sidebarCompareLinkText} onChange={(e) => updateBlogPage({ sidebarCompareLinkText: e.target.value })} className={inputClass} />
+              </Field>
+              <Field label={'Mid-article promo card "Recommended for you" label'}>
+                <input value={content.sections.blogPage.promoRecommendedText} onChange={(e) => updateBlogPage({ promoRecommendedText: e.target.value })} className={inputClass} />
+              </Field>
+            </div>
+          </SectionCard>
+
+          <SectionCard title="404 (page not found)" description="Shown when a visitor lands on a broken or missing link.">
+            <Field label="Heading">
+              <input value={content.sections.notFound.heading} onChange={(e) => updateNotFound({ heading: e.target.value })} className={inputClass} />
+            </Field>
+            <Field label="Body text">
+              <textarea rows={2} value={content.sections.notFound.body} onChange={(e) => updateNotFound({ body: e.target.value })} className={inputClass} />
+            </Field>
+            <div className="grid gap-5 sm:grid-cols-2">
+              <Field label="Primary button text">
+                <input value={content.sections.notFound.primaryButtonText} onChange={(e) => updateNotFound({ primaryButtonText: e.target.value })} className={inputClass} />
+              </Field>
+              <Field label="Primary button link">
+                <input value={content.sections.notFound.primaryButtonHref} onChange={(e) => updateNotFound({ primaryButtonHref: e.target.value })} className={inputClass} />
+              </Field>
+              <Field label="Secondary button text">
+                <input value={content.sections.notFound.secondaryButtonText} onChange={(e) => updateNotFound({ secondaryButtonText: e.target.value })} className={inputClass} />
+              </Field>
+              <Field label="Secondary button link">
+                <input value={content.sections.notFound.secondaryButtonHref} onChange={(e) => updateNotFound({ secondaryButtonHref: e.target.value })} className={inputClass} />
+              </Field>
             </div>
           </SectionCard>
 

@@ -76,11 +76,23 @@ export default function PrivacyPolicyForm({ initial }: { initial: PrivacyPolicy 
         </p>
       )}
 
-      <div className="rounded-2xl border border-stone-200 bg-white p-6">
-        <label className="mb-1 block text-sm font-medium text-stone-700">Page title (H1)</label>
-        <input value={policy.title} onChange={(e) => update("title", e.target.value)} className={inputClass} required />
-        <p className="mt-2 text-xs text-stone-500">
-          Last updated: {policy.lastUpdated || "—"} (updates automatically when you save)
+      <div className="rounded-2xl border border-stone-200 bg-white p-6 space-y-4">
+        <div>
+          <label className="mb-1 block text-sm font-medium text-stone-700">Page title (H1)</label>
+          <input value={policy.title} onChange={(e) => update("title", e.target.value)} className={inputClass} required />
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label className="mb-1 block text-sm font-medium text-stone-700">"Last updated" label prefix</label>
+            <input value={policy.lastUpdatedLabel} onChange={(e) => update("lastUpdatedLabel", e.target.value)} className={inputClass} placeholder="Last updated: " />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-stone-700">Empty-state message</label>
+            <input value={policy.emptyStateText} onChange={(e) => update("emptyStateText", e.target.value)} className={inputClass} placeholder="This page hasn't been filled in yet." />
+          </div>
+        </div>
+        <p className="text-xs text-stone-500">
+          Last updated: {policy.lastUpdated || "—"} (the date itself updates automatically when you save)
         </p>
       </div>
 

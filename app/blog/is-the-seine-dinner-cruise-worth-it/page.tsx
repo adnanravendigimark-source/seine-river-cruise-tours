@@ -10,6 +10,7 @@ import BlogPostBody from "@/components/BlogPostBody";
 import BlogSidebar from "@/components/BlogSidebar";
 import SafeImage from "@/components/SafeImage";
 import { getPost } from "@/lib/posts";
+import { getHomepageContent } from "@/lib/homepage";
 import { resolveRobots, resolveCanonical, resolveOg, buildArticleJsonLd } from "@/lib/seo";
 import { SITE_URL } from "@/lib/site";
 import { extractTableOfContents } from "@/lib/tableOfContents";
@@ -48,7 +49,8 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Post() {
-  const post = await getPost(slug);
+  const [post, { sections }] = await Promise.all([getPost(slug), getHomepageContent()]);
+  const s = sections.blogPage;
   if (!post) notFound();
 
   const articleJsonLd = buildArticleJsonLd({
@@ -66,7 +68,7 @@ export default async function Post() {
   // its own component/field rather than a heading inside `content`.
   const { toc: headingToc, html: contentHtml } = extractTableOfContents(post.content);
   const toc = post.quickAnswer.trim()
-    ? [{ id: "quick-answer", text: "Quick Answer", level: 2 as const }, ...headingToc]
+    ? [{ id: "quick-answer", text: s.quickAnswerLabel, level: 2 as const }, ...headingToc]
     : headingToc;
 
   return (
@@ -75,7 +77,7 @@ export default async function Post() {
       <Breadcrumbs items={[{ name: "Blog", path: "/blog" }, { name: post.category, path: `/blog/${slug}` }]} />
       <main>
         <div className="mx-auto max-w-4xl px-4 pt-6 sm:px-6">
-          <Link href="/blog" className="text-sm font-medium text-seine-teal">← All guides</Link>
+          <Link href="/blog" className="text-sm font-medium text-seine-teal">{s.backToGuidesText}</Link>
           <div className="mt-6 flex items-center gap-3 text-xs font-semibold uppercase tracking-wide text-seine-teal">
             <span>{post.category}</span>
             <span className="h-1 w-1 rounded-full bg-stone-900/20" />
@@ -99,9 +101,9 @@ export default async function Post() {
 
         <div className="mx-auto max-w-6xl px-4 pb-16 pt-10 sm:px-6 lg:grid lg:grid-cols-[1fr_20rem] lg:gap-10">
           <div>
-            <TableOfContents items={toc} />
+            <TableOfContents items={toc} label={s.tocLabel} />
 
-            <QuickAnswer>{post.quickAnswer}</QuickAnswer>
+            <QuickAnswer label={s.quickAnswerLabel}>{post.quickAnswer}</QuickAnswer>
 
             <BlogPostBody
               content={contentHtml}

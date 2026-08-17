@@ -34,7 +34,7 @@ export default async function PrivacyPolicyPage() {
       <main className="mx-auto max-w-3xl px-4 py-16 sm:px-6 sm:py-20">
         <h1 className="font-display text-3xl font-bold text-stone-900 sm:text-4xl">{policy.title}</h1>
         {policy.lastUpdated && (
-          <p className="mt-2 text-sm text-stone-900/50">Last updated: {policy.lastUpdated}</p>
+          <p className="mt-2 text-sm text-stone-900/50">{policy.lastUpdatedLabel}{policy.lastUpdated}</p>
         )}
 
         <div className="mt-8 space-y-5 text-[17px] leading-relaxed text-stone-900/80">
@@ -56,7 +56,7 @@ export default async function PrivacyPolicyPage() {
             </div>
           ))}
           {policy.content.length === 0 && (
-            <p className="text-stone-900/50">This page hasn't been filled in yet.</p>
+            <p className="text-stone-900/50">{policy.emptyStateText}</p>
           )}
         </div>
       </main>

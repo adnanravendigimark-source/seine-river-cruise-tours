@@ -181,6 +181,10 @@ export default function AboutForm({ initial }: { initial: AboutPageContent }) {
             <input value={about.ctaButtonLabel} onChange={(e) => update("ctaButtonLabel", e.target.value)} className={inputClass} />
           </div>
         </div>
+        <div>
+          <label className={labelClass}>Contact prompt (below the CTA box)</label>
+          <RichTextEditor value={about.contactPromptHtml} onChange={(html) => update("contactPromptHtml", html)} minHeight="3rem" allowedHeadings={[]} />
+        </div>
       </SectionCard>
 
       <SeoFieldsCard

@@ -1,5 +1,6 @@
 import TourPromoCard from "./TourPromoCard";
 import { getTours } from "@/lib/data";
+import { getHomepageContent } from "@/lib/homepage";
 
 // Inline tour promo dropped mid-article — this is the highest-converting
 // spot in a blog post, since the reader is already engaged with the exact
@@ -8,8 +9,14 @@ import { getTours } from "@/lib/data";
 // every tour loaded client-side) can render the identical card without
 // needing this async Server Component fetch.
 export default async function RecommendedTour({ tourId }: { tourId: string }) {
-  const tours = await getTours();
+  const [tours, { header, sections }] = await Promise.all([getTours(), getHomepageContent()]);
   const tour = tours.find((t) => t.id === tourId);
   if (!tour) return null;
-  return <TourPromoCard tour={tour} />;
+  return (
+    <TourPromoCard
+      tour={tour}
+      recommendedLabel={sections.blogPage.promoRecommendedText}
+      bookNowText={header.bookNowText}
+    />
+  );
 }

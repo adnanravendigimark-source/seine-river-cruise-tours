@@ -10,6 +10,7 @@ import { getHomepageContent } from "@/lib/homepage";
 // treatment) rather than floating as a separate section — see TourGrid.tsx.
 export default async function FeaturedTour() {
   const content = await getHomepageContent();
+  const bookNowText = content.header.bookNowText;
   if (!content.showFeaturedTour) return null;
 
   const tours = await getTours();
@@ -38,7 +39,7 @@ export default async function FeaturedTour() {
           rel="noopener nofollow sponsored"
           className="shrink-0 rounded-full bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-600 px-4 py-2 text-xs font-bold text-white shadow-md shadow-amber-500/20 transition hover:scale-[1.02]"
         >
-          Book Now
+          {bookNowText}
         </a>
       </div>
     </div>

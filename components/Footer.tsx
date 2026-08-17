@@ -12,7 +12,14 @@ export default async function Footer() {
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="flex flex-col gap-10 border-b border-white/10 pb-10 sm:flex-row sm:justify-between">
           <div className="max-w-sm">
-            <Logo variant="compact" theme="dark" src={header.logoImage} alt={header.logoAlt} />
+            <Logo
+              variant="compact"
+              theme="dark"
+              src={header.logoImage}
+              alt={header.logoAlt}
+              line1={header.logoLine1}
+              line2={header.logoLine2}
+            />
             <p
               className="mt-4 text-sm text-white/60 [&_strong]:text-white [&_a]:underline"
               dangerouslySetInnerHTML={{ __html: footer.tagline }}

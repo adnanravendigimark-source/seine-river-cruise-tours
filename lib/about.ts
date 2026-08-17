@@ -27,6 +27,10 @@ export interface AboutPageContent {
   disclosureBody: string;
   ctaText: string;
   ctaButtonLabel: string;
+  // Small line under the CTA box pointing to the Contact page — rich text
+  // so the "contact page" link inside it stays editable too. See
+  // app/about/page.tsx.
+  contactPromptHtml: string;
   metaTitle: string;
   metaDescription: string;
   canonicalUrl: string;
@@ -64,6 +68,8 @@ const DEFAULT_ABOUT: AboutPageContent = {
     "When you book a Seine River cruise through a link on this site, we earn a small commission from the operator at no extra cost to you. This is how we keep the site free and independently written — it doesn't affect which cruises we recommend or how we rank them.",
   ctaText: "Ready to book your Seine River cruise?",
   ctaButtonLabel: "Compare Seine River Cruises",
+  contactPromptHtml:
+    "Questions before you book? Reach out via our <a href=\"/contact\">contact page</a>.",
   metaTitle: "About Us | Seine River Cruise Tour & Ticket Booking Guide",
   metaDescription:
     "Who curates our Seine River sightseeing and dinner cruises online, how we pick licensed operators, and why a good cruise beats a rushed one.",
@@ -107,6 +113,7 @@ function rowToAbout(row: any): AboutPageContent {
     disclosureBody: row.disclosure_body ?? DEFAULT_ABOUT.disclosureBody,
     ctaText: row.cta_text ?? DEFAULT_ABOUT.ctaText,
     ctaButtonLabel: row.cta_button_label ?? DEFAULT_ABOUT.ctaButtonLabel,
+    contactPromptHtml: row.contact_prompt_html ?? DEFAULT_ABOUT.contactPromptHtml,
     metaTitle: row.meta_title || DEFAULT_ABOUT.metaTitle,
     metaDescription: row.meta_description || DEFAULT_ABOUT.metaDescription,
     canonicalUrl: row.canonical_url || "",
@@ -145,14 +152,14 @@ export async function saveAboutPage(data: AboutPageContent): Promise<void> {
       id, hero_eyebrow, hero_heading, hero_subheading, hero_image, hero_image_alt,
       intro_heading, intro_paragraph_1, intro_paragraph_2, intro_image, intro_image_alt,
       reasons_heading, reasons_subheading, reasons,
-      disclosure_heading, disclosure_body, cta_text, cta_button_label,
+      disclosure_heading, disclosure_body, cta_text, cta_button_label, contact_prompt_html,
       meta_title, meta_description, canonical_url, no_index, no_follow,
       og_title, og_description, og_image
     ) VALUES (
       1, ${data.heroEyebrow}, ${data.heroHeading}, ${data.heroSubheading}, ${data.heroImage}, ${data.heroImageAlt},
       ${data.introHeading}, ${data.introParagraph1}, ${data.introParagraph2}, ${data.introImage}, ${data.introImageAlt},
       ${data.reasonsHeading}, ${data.reasonsSubheading}, ${JSON.stringify(data.reasons || [])}::jsonb,
-      ${data.disclosureHeading}, ${data.disclosureBody}, ${data.ctaText}, ${data.ctaButtonLabel},
+      ${data.disclosureHeading}, ${data.disclosureBody}, ${data.ctaText}, ${data.ctaButtonLabel}, ${data.contactPromptHtml},
       ${data.metaTitle}, ${data.metaDescription}, ${data.canonicalUrl || ""}, ${!!data.noIndex}, ${!!data.noFollow},
       ${data.ogTitle || ""}, ${data.ogDescription || ""}, ${data.ogImage || ""}
     )
@@ -174,6 +181,7 @@ export async function saveAboutPage(data: AboutPageContent): Promise<void> {
       disclosure_body = EXCLUDED.disclosure_body,
       cta_text = EXCLUDED.cta_text,
       cta_button_label = EXCLUDED.cta_button_label,
+      contact_prompt_html = EXCLUDED.contact_prompt_html,
       meta_title = EXCLUDED.meta_title,
       meta_description = EXCLUDED.meta_description,
       canonical_url = EXCLUDED.canonical_url,

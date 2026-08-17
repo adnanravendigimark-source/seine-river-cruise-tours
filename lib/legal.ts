@@ -5,6 +5,10 @@ import privacyPolicySeed from "@/data/privacy-policy.json";
 export interface PrivacyPolicy {
   title: string;
   lastUpdated: string;
+  // Prefix shown before the last-updated date, and the message shown when
+  // no content blocks have been added yet — see app/privacy-policy/page.tsx.
+  lastUpdatedLabel: string;
+  emptyStateText: string;
   content: ContentBlock[];
   // Search Engine Indexing toggle (admin-editable). false (default) =
   // indexable (index, follow). true = noindex, nofollow. See lib/seo.ts.
@@ -39,6 +43,8 @@ function parseContent(value: unknown): ContentBlock[] {
 const DEFAULT_PRIVACY_POLICY: PrivacyPolicy = {
   title: (privacyPolicySeed as any).title || "Privacy Policy",
   lastUpdated: new Date().toISOString().slice(0, 10),
+  lastUpdatedLabel: "Last updated: ",
+  emptyStateText: "This page hasn't been filled in yet.",
   content: (privacyPolicySeed as any).content || [],
   noIndex: false,
   noFollow: false,
@@ -58,6 +64,8 @@ export async function getPrivacyPolicy(): Promise<PrivacyPolicy> {
     return {
       title: row.title || DEFAULT_PRIVACY_POLICY.title,
       lastUpdated: row.last_updated || DEFAULT_PRIVACY_POLICY.lastUpdated,
+      lastUpdatedLabel: row.last_updated_label ?? DEFAULT_PRIVACY_POLICY.lastUpdatedLabel,
+      emptyStateText: row.empty_state_text ?? DEFAULT_PRIVACY_POLICY.emptyStateText,
       content: parseContent(row.content),
       noIndex: !!row.no_index,
       noFollow: !!row.no_follow,
@@ -87,6 +95,8 @@ export async function setPrivacyIndexing(noIndex: boolean, noFollow: boolean): P
 
 export async function savePrivacyPolicy(data: {
   title: string;
+  lastUpdatedLabel: string;
+  emptyStateText: string;
   content: ContentBlock[];
   noIndex: boolean;
   noFollow: boolean;
@@ -100,17 +110,20 @@ export async function savePrivacyPolicy(data: {
   const lastUpdated = new Date().toISOString().slice(0, 10);
   await sql`
     INSERT INTO privacy_policy (
-      id, title, last_updated, content, no_index, no_follow, canonical_url,
+      id, title, last_updated, last_updated_label, empty_state_text, content, no_index, no_follow, canonical_url,
       meta_title, meta_description, og_title, og_description, og_image
     )
     VALUES (
-      1, ${data.title}, ${lastUpdated}, ${JSON.stringify(data.content || [])}::jsonb, ${!!data.noIndex}, ${!!data.noFollow},
+      1, ${data.title}, ${lastUpdated}, ${data.lastUpdatedLabel || ""}, ${data.emptyStateText || ""},
+      ${JSON.stringify(data.content || [])}::jsonb, ${!!data.noIndex}, ${!!data.noFollow},
       ${data.canonicalUrl || ""}, ${data.metaTitle || ""}, ${data.metaDescription || ""},
       ${data.ogTitle || ""}, ${data.ogDescription || ""}, ${data.ogImage || ""}
     )
     ON CONFLICT (id) DO UPDATE SET
       title = EXCLUDED.title,
       last_updated = EXCLUDED.last_updated,
+      last_updated_label = EXCLUDED.last_updated_label,
+      empty_state_text = EXCLUDED.empty_state_text,
       content = EXCLUDED.content,
       no_index = EXCLUDED.no_index,
       no_follow = EXCLUDED.no_follow,

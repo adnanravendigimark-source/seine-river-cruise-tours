@@ -1,7 +1,8 @@
 import { getFaqs } from "@/lib/data";
+import { getHomepageContent } from "@/lib/homepage";
 
 export default async function FAQSection() {
-  const faqs = await getFaqs();
+  const [faqs, { sections }] = await Promise.all([getFaqs(), getHomepageContent()]);
   // FAQPage structured data — makes these eligible for rich results /
   // "People also ask" boxes. Add/edit questions from /admin/faqs. The
   // answer is admin-entered rich text (bold, links, lists) — structured
@@ -20,7 +21,7 @@ export default async function FAQSection() {
   return (
     <section id="faq" className="mx-auto max-w-4xl px-4 py-16 sm:px-6">
       <h2 className="font-display text-3xl font-bold text-stone-900">
-        Seine River Cruise FAQs
+        {sections.faq.heading}
       </h2>
       <div className="mt-8 divide-y divide-stone-900/10 rounded-2xl border border-stone-900/10 bg-white">
         {faqs.map((f) => (

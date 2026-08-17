@@ -1,10 +1,15 @@
 import Link from "next/link";
 import SafeImage from "./SafeImage";
 import { getPosts } from "@/lib/posts";
+import { getHomepageContent } from "@/lib/homepage";
 
+// Wrapper copy (eyebrow/heading/subheading/button labels) editable from
+// /admin/homepage → Content tab (see lib/homepage.ts's BlogTeaserSection /
+// DEFAULT_SECTIONS.blogTeaser). The posts themselves come from /admin/posts.
 export default async function BlogSection() {
-  const allPosts = await getPosts();
+  const [allPosts, { sections }] = await Promise.all([getPosts(), getHomepageContent()]);
   const posts = allPosts.filter((p) => !p.noIndex).slice(0, 3);
+  const s = sections.blogTeaser;
 
   if (posts.length === 0) return null;
 
@@ -14,20 +19,18 @@ export default async function BlogSection() {
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.25em] text-seine-teal">
-              From the Blog
+              {s.eyebrow}
             </p>
             <h2 className="mt-2 font-display text-3xl font-bold tracking-tight text-stone-900 sm:text-4xl">
-              Seine River Cruise Guides &amp; Tips
+              {s.heading}
             </h2>
-            <p className="mt-3 max-w-2xl text-base text-stone-600">
-              Expert advice, dinner cruise comparisons, and insider tips to help you plan your Paris river experience.
-            </p>
+            <p className="mt-3 max-w-2xl text-base text-stone-600">{s.subheading}</p>
           </div>
           <Link
             href="/blog"
             className="inline-flex items-center justify-center gap-2 self-start md:self-auto rounded-full bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-600 px-6 py-2.5 text-sm font-bold text-white shadow-md shadow-amber-500/20 transition-all duration-300 hover:scale-[1.03] hover:shadow-amber-500/30"
           >
-            <span>View All Articles</span>
+            <span>{s.viewAllText}</span>
             <span aria-hidden="true">→</span>
           </Link>
         </div>
@@ -65,7 +68,7 @@ export default async function BlogSection() {
                     href={`/blog/${post.slug}`}
                     className="inline-flex items-center gap-1.5 text-sm font-semibold text-emerald-700 transition group-hover:text-amber-600 group-hover:gap-2"
                   >
-                    <span>Read Article</span>
+                    <span>{s.readArticleText}</span>
                     <span aria-hidden="true">→</span>
                   </Link>
                 </div>
@@ -79,7 +82,7 @@ export default async function BlogSection() {
             href="/blog"
             className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-600 px-6 py-3 text-sm font-bold text-white shadow-md shadow-amber-500/20 transition hover:scale-[1.02]"
           >
-            <span>View All Articles</span>
+            <span>{s.viewAllText}</span>
             <span aria-hidden="true">→</span>
           </Link>
         </div>

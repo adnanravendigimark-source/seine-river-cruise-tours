@@ -21,7 +21,7 @@ export default async function PracticalInfo() {
               ))}
             </tbody>
           </table>
-          <p className="mt-2 text-xs text-stone-900/50">Departures every 30–45 minutes; exact times vary by operator.</p>
+          <p className="mt-2 text-xs text-stone-900/50">{s.hoursNote}</p>
         </div>
         <div>
           <h3 className="font-display text-lg font-semibold text-stone-900">{s.addressHeading}</h3>

@@ -29,6 +29,7 @@ export default async function TourGrid() {
           <TourCard
             key={tour.id}
             tour={tour}
+            bookNowText={content.header.bookNowText}
             recommended={
               content.showFeaturedTour && tour.id === content.featuredTourId
                 ? {

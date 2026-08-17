@@ -11,7 +11,7 @@ export default async function Header() {
   return (
     <header className="sticky top-0 z-50 h-16 border-b border-stone-200/80 bg-white/90 backdrop-blur-md">
       <div className="mx-auto flex h-full max-w-6xl items-center justify-between px-4 sm:px-6">
-        <Logo src={header.logoImage} alt={header.logoAlt} />
+        <Logo src={header.logoImage} alt={header.logoAlt} line1={header.logoLine1} line2={header.logoLine2} />
         <nav className="hidden items-center gap-7 text-sm font-medium text-stone-700 md:flex">
           {header.navLinks.map((link) => (
             <Link key={link.href + link.label} href={link.href} className="transition-colors hover:text-emerald-700">
