@@ -68,20 +68,36 @@ export default async function AboutPage() {
         </section>
 
         {/* What we do — text + image */}
-        <section className="mx-auto grid max-w-6xl gap-10 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:items-center">
-          <div>
-            <h2 className="font-display text-2xl font-bold text-stone-900">{about.introHeading}</h2>
-            <div className="rich-content mt-4 text-stone-900/70" dangerouslySetInnerHTML={{ __html: about.introParagraph1 }} />
-            <div className="rich-content mt-4 text-stone-900/70" dangerouslySetInnerHTML={{ __html: about.introParagraph2 }} />
-          </div>
-          <div className="relative aspect-[4/3] overflow-hidden rounded-3xl shadow-lg">
-            <Image
-              src={about.introImage}
-              alt={about.introImageAlt}
-              fill
-              sizes="(min-width: 1024px) 40vw, 90vw"
-              className="object-cover"
-            />
+        {/* The text here is admin-entered rich content and can run long
+            (headings, lists, several paragraphs) — a fixed-height image
+            forced into a lg:items-center 2-col grid next to it used to
+            leave a huge blank gap once the text column grew taller than
+            the image. Fixing that properly: the image is capped to a
+            sensible max-width and made lg:sticky so it stays pinned near
+            the top of the viewport as the text scrolls past, instead of
+            leaving dead space beside it — this looks right regardless of
+            how much copy ends up in these fields. */}
+        <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+          <div className="grid gap-x-10 gap-y-8 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
+            <div className="min-w-0 lg:order-1">
+              <h2 className="font-display text-2xl font-bold text-stone-900">{about.introHeading}</h2>
+              <div className="rich-content mt-4 text-stone-900/70" dangerouslySetInnerHTML={{ __html: about.introParagraph1 }} />
+              <div className="rich-content mt-4 text-stone-900/70" dangerouslySetInnerHTML={{ __html: about.introParagraph2 }} />
+            </div>
+            <div className="lg:sticky lg:top-24 lg:order-2">
+              <div className="relative aspect-[4/3] overflow-hidden rounded-3xl shadow-lg">
+                <Image
+                  src={about.introImage}
+                  alt={about.introImageAlt}
+                  fill
+                  sizes="(min-width: 1024px) 20rem, 90vw"
+                  className="object-cover"
+                />
+              </div>
+              {about.introImageAlt && (
+                <p className="mt-3 text-xs italic leading-snug text-stone-900/40">{about.introImageAlt}</p>
+              )}
+            </div>
           </div>
         </section>
 
