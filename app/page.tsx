@@ -56,6 +56,11 @@ export default async function HomePage() {
       // structured data needs plain text, so tags are stripped here; the
       // tour card itself renders the real formatted HTML.
       description: t.description.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim(),
+      // Google Search Console's Merchant listings check flags Product
+      // structured data missing an "image" as a critical error — t.image
+      // is already an absolute URL (Unsplash/Blob), so no SITE_URL prefix
+      // needed here.
+      image: t.image,
       aggregateRating: {
         "@type": "AggregateRating",
         ratingValue: t.rating,
