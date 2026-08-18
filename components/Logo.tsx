@@ -55,7 +55,7 @@ export default function Logo({
   }
 
   const image = (
-    <span className="relative block h-9 w-[78px] overflow-hidden sm:h-10 sm:w-[87px] transition-transform duration-300 group-hover:scale-105">
+    <span className="relative block h-9 w-[78px] shrink-0 overflow-hidden sm:h-10 sm:w-[87px] transition-transform duration-300 group-hover:scale-105">
       <Image
         src={customSrc || logoImg}
         alt={alt}
@@ -68,7 +68,7 @@ export default function Logo({
   );
 
   const wordmark = (
-    <span className="hidden items-center gap-3 sm:flex">
+    <span className="flex min-w-0 items-center gap-3">
       <span
         className={`h-8 w-[1.5px] shrink-0 rounded-full ${
           isDark
@@ -77,23 +77,26 @@ export default function Logo({
         }`}
         aria-hidden="true"
       />
-      <div className="flex flex-col leading-[1.08]">
+      <div className="flex min-w-0 flex-col leading-[1.08]">
         <span
-          className={`block whitespace-nowrap font-display text-[1.4rem] sm:text-[1.5rem] font-bold italic tracking-tight ${
+          className={`block truncate font-display text-[1.4rem] sm:text-[1.5rem] font-bold italic tracking-tight ${
             isDark ? "text-white" : "text-stone-900"
           }`}
         >
           {line1}
         </span>
-        <span className="block whitespace-nowrap font-sans text-[10px] font-extrabold uppercase tracking-[0.32em] bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-500 bg-clip-text text-transparent">
+        <span className="block truncate font-sans text-[10px] font-extrabold uppercase tracking-[0.32em] bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-500 bg-clip-text text-transparent">
           {line2}
         </span>
       </div>
     </span>
   );
 
+  // min-w-0 lets the wordmark shrink/truncate on narrow screens instead of
+  // forcing the header to overflow (or collide with the mobile hamburger)
+  // if an admin-entered site name is long — see MobileNav.tsx.
   return (
-    <Link href="/" className={`group inline-flex items-center gap-2 ${className}`}>
+    <Link href="/" className={`group inline-flex min-w-0 items-center gap-2 ${className}`}>
       {image}
       {wordmark}
     </Link>
