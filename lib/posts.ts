@@ -187,11 +187,11 @@ export async function getPosts(): Promise<Post[]> {
     // becomes the featured article at the top of /blog, which is what
     // "publishing a post" should actually do.
     const rows = await sql`SELECT * FROM posts ORDER BY date DESC, sort_order ASC`;
-    if (rows.length) return rows.map(rowToPost);
-    // Empty/unreachable table — fall back to the real starter articles
-    // baked into /data so the blog is never empty.
-    return seedPosts();
+    return rows.map(rowToPost);
   } catch {
+    // DB unreachable (e.g. first run before setup-db.mjs has ever connected) -
+    // fall back to seed content. An empty table is a valid, intentional state
+    // (admin deleted every post) and must NOT fall back here.
     return seedPosts();
   }
 }
@@ -199,8 +199,7 @@ export async function getPosts(): Promise<Post[]> {
 export async function getPost(slug: string): Promise<Post | undefined> {
   try {
     const rows = await sql`SELECT * FROM posts WHERE slug = ${slug} LIMIT 1`;
-    if (rows.length) return rowToPost(rows[0]);
-    return seedPosts().find((p) => p.slug === slug);
+    return rows.length ? rowToPost(rows[0]) : undefined;
   } catch {
     return seedPosts().find((p) => p.slug === slug);
   }
