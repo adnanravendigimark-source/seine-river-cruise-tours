@@ -20,10 +20,7 @@ export async function PUT(req: Request) {
     if (!body.heroHeading?.trim()) {
       return NextResponse.json({ error: "Hero heading is required." }, { status: 400 });
     }
-    await saveAboutPage({
-      ...body,
-      reasons: Array.isArray(body.reasons) ? body.reasons : [],
-    });
+    await saveAboutPage(body);
     return NextResponse.json({ ok: true });
   } catch (err) {
     return NextResponse.json({ error: dbErrorMessage(err) }, { status: 500 });

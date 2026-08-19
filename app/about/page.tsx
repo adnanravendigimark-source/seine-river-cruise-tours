@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
-import Image from "next/image";
+import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import Breadcrumbs from "@/components/Breadcrumbs";
+import SafeImage from "@/components/SafeImage";
 import { getAboutPage } from "@/lib/about";
-import { getIconComponent } from "@/lib/iconMap";
 import { resolveRobots, resolveCanonical, resolveOg } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
@@ -43,115 +42,48 @@ export default async function AboutPage() {
         {/* Hero banner */}
         <section className="relative overflow-hidden bg-seine-ink text-white">
           <div className="absolute inset-0">
-            <Image
+            <SafeImage
               src={about.heroImage}
               alt={about.heroImageAlt}
               fill
               priority
               sizes="100vw"
-              className="object-cover"
+              className="object-cover object-center opacity-35"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-seine-ink via-seine-ink/75 to-seine-ink/40" />
+            <div className="absolute inset-0 bg-gradient-to-t from-seine-ink via-seine-ink/80 to-transparent" />
           </div>
-          <div className="relative mx-auto max-w-3xl px-4 py-20 text-center sm:px-6 sm:py-28">
-            <span className="text-xs font-semibold uppercase tracking-[0.3em] text-gold-400">
+          <div className="relative mx-auto max-w-6xl px-4 py-16 text-center sm:px-6 sm:py-20">
+            <nav aria-label="Breadcrumb" className="text-xs font-medium text-white/70">
+              <ol className="flex items-center justify-center gap-1.5">
+                <li>
+                  <Link href="/" className="hover:text-white transition-colors">
+                    Home
+                  </Link>
+                </li>
+                <li className="text-white/40">&gt;</li>
+                <li className="font-semibold text-white" aria-current="page">
+                  About Us
+                </li>
+              </ol>
+            </nav>
+            <span className="mt-4 inline-block text-xs font-bold uppercase tracking-widest text-gold-400">
               {about.heroEyebrow}
             </span>
-            <h1 className="mt-4 font-display text-3xl font-bold leading-tight sm:text-5xl">
+            <h1 className="mt-2 font-display text-3xl font-extrabold tracking-tight text-white sm:text-4xl lg:text-5xl">
               {about.heroHeading}
             </h1>
             <div
-              className="rich-content rich-content-invert mt-5 text-white/85"
+              className="rich-content rich-content-invert mx-auto mt-4 max-w-lg text-sm leading-relaxed text-white/90 sm:text-base"
               dangerouslySetInnerHTML={{ __html: about.heroSubheading }}
             />
           </div>
         </section>
 
-        {/* What we do — text + image */}
-        {/* The text here is admin-entered rich content and can run long
-            (headings, lists, several paragraphs) — a fixed-height image
-            forced into a lg:items-center 2-col grid next to it used to
-            leave a huge blank gap once the text column grew taller than
-            the image. Fixing that properly: the image is capped to a
-            sensible max-width and made lg:sticky so it stays pinned near
-            the top of the viewport as the text scrolls past, instead of
-            leaving dead space beside it — this looks right regardless of
-            how much copy ends up in these fields. */}
-        <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-          <div className="grid gap-x-10 gap-y-8 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
-            <div className="min-w-0 lg:order-1">
-              <h2 className="font-display text-2xl font-bold text-stone-900">{about.introHeading}</h2>
-              <div className="rich-content mt-4 text-stone-900/70" dangerouslySetInnerHTML={{ __html: about.introParagraph1 }} />
-              <div className="rich-content mt-4 text-stone-900/70" dangerouslySetInnerHTML={{ __html: about.introParagraph2 }} />
-            </div>
-            <div className="lg:sticky lg:top-24 lg:order-2">
-              <div className="relative aspect-[4/3] overflow-hidden rounded-3xl shadow-lg">
-                <Image
-                  src={about.introImage}
-                  alt={about.introImageAlt}
-                  fill
-                  sizes="(min-width: 1024px) 20rem, 90vw"
-                  className="object-cover"
-                />
-              </div>
-              {about.introImageAlt && (
-                <p className="mt-3 text-xs italic leading-snug text-stone-900/40">{about.introImageAlt}</p>
-              )}
-            </div>
-          </div>
-        </section>
-
-        {/* Why us — icon cards */}
-        <section className="bg-white py-16">
-          <div className="mx-auto max-w-6xl px-4 sm:px-6">
-            <h2 className="font-display text-2xl font-bold text-stone-900">{about.reasonsHeading}</h2>
-            <div
-              className="rich-content mt-3 max-w-2xl text-stone-900/70"
-              dangerouslySetInnerHTML={{ __html: about.reasonsSubheading }}
-            />
-            <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              {about.reasons.map(({ icon, title, body }) => {
-                const Icon = getIconComponent(icon);
-                return (
-                  <div key={title} className="rounded-2xl border border-stone-900/10 bg-stone-50 p-6">
-                    <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-seine-teal/10 text-seine-teal">
-                      <Icon className="h-5 w-5" />
-                    </span>
-                    <p className="mt-4 text-sm font-semibold text-stone-900">{title}</p>
-                    <div
-                      className="rich-content mt-1.5 text-sm text-stone-900/60"
-                      dangerouslySetInnerHTML={{ __html: body }}
-                    />
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </section>
-
-        {/* Disclosure + CTA */}
-        <section className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
-          <h2 className="font-display text-xl font-semibold text-stone-900">{about.disclosureHeading}</h2>
-          <div
-            className="rich-content mt-3 text-sm text-stone-900/70"
-            dangerouslySetInnerHTML={{ __html: about.disclosureBody }}
-          />
-
-          <div className="mt-10 flex flex-col items-start gap-4 rounded-2xl bg-seine-teal/5 p-6 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm font-medium text-stone-900">{about.ctaText}</p>
-            <a
-              href="/#tours"
-              className="shrink-0 rounded-full bg-seine-amber px-6 py-3 text-sm font-semibold text-white transition hover:bg-seine-amber/90"
-            >
-              {about.ctaButtonLabel} →
-            </a>
-          </div>
-
-          <div
-            className="rich-content mt-8 text-sm text-stone-900/70 [&_a]:font-medium [&_a]:text-seine-amber [&_a]:underline"
-            dangerouslySetInnerHTML={{ __html: about.contactPromptHtml }}
-          />
-        </section>
+        {/* Page body — one flowing rich-text article, written and edited
+            just like a blog post (see lib/about.ts's `content` field). */}
+        <div className="mx-auto max-w-2xl px-4 py-14 sm:px-6 sm:py-20">
+          <div className="rich-content leading-relaxed text-stone-900/80" dangerouslySetInnerHTML={{ __html: about.content }} />
+        </div>
       </main>
       <Footer />
     </>
