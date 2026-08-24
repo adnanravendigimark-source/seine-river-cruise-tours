@@ -29,22 +29,24 @@ export async function setAdminPasswordHash(plainPassword: string): Promise<void>
 
 /**
  * Verifies a candidate password against the owner account.
- * Checks the DB hash first; if none is stored, falls back to the plain-text
- * ADMIN_PASSWORD env var (the original behaviour before the owner ever
- * changed their password through the UI).
+ * Checks the DB hash first, then always also checks the plain-text
+ * ADMIN_PASSWORD env var — even if a DB hash is set.
+ *
+ * Bug fixed here: this used to return as soon as a DB hash existed, never
+ * even checking ADMIN_PASSWORD. That meant a stale hash saved once through
+ * /admin/account (e.g. during earlier setup/testing) would permanently
+ * shadow the env var — rotating ADMIN_PASSWORD in Vercel and redeploying
+ * had no effect at all, silently locking the owner out with their new
+ * password while the old one kept working. ADMIN_PASSWORD is meant to be a
+ * break-glass credential the owner can always reset from Vercel, so it
+ * must remain valid even after a DB hash has been set.
  */
 export async function verifyOwnerPassword(candidate: string): Promise<boolean> {
   const dbHash = await getAdminPasswordHash();
-  if (dbHash) {
-    return verifyPassword(candidate, dbHash);
-  }
-  // Fall back: compare directly against the env var (initial setup).
-  // Fail closed: if ADMIN_PASSWORD isn't set on the server, never fall
-  // back to any default (empty string or otherwise) — that would let an
-  // unconfigured deployment be logged into with a blank or guessable
-  // password. No env var configured means the owner account simply
-  // can't log in via this fallback until it is set.
   const envPw = process.env.ADMIN_PASSWORD;
-  if (!envPw) return false;
-  return candidate === envPw;
+
+  if (dbHash && verifyPassword(candidate, dbHash)) return true;
+  if (envPw && candidate === envPw) return true;
+
+  return false;
 }
