@@ -39,6 +39,12 @@ export async function verifyOwnerPassword(candidate: string): Promise<boolean> {
     return verifyPassword(candidate, dbHash);
   }
   // Fall back: compare directly against the env var (initial setup).
-  const envPw = process.env.ADMIN_PASSWORD || "";
+  // Fail closed: if ADMIN_PASSWORD isn't set on the server, never fall
+  // back to any default (empty string or otherwise) — that would let an
+  // unconfigured deployment be logged into with a blank or guessable
+  // password. No env var configured means the owner account simply
+  // can't log in via this fallback until it is set.
+  const envPw = process.env.ADMIN_PASSWORD;
+  if (!envPw) return false;
   return candidate === envPw;
 }

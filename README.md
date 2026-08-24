@@ -61,8 +61,8 @@ To turn on the live CMS:
 ## 4. Admin CMS
 
 Visit `/admin/login`. The owner account is whatever you set
-`ADMIN_EMAIL` / `ADMIN_PASSWORD` to in `.env` (defaults to
-`admin@gmail.com` / `12345678` — **change this before going live**). From
+`ADMIN_EMAIL` / `ADMIN_PASSWORD` to in `.env` — there is no built-in
+default, so both must be set or the owner account can't log in. From
 there you can add editor accounts with access to specific sections (Tours,
 Blog Posts, FAQs, Homepage, Privacy Policy, or About/Contact/Blog SEO) from
 the Users page.
