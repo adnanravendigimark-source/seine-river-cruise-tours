@@ -44,8 +44,12 @@ export default function TourForm({
     setDirty(true);
   }
 
+  // The ticket card on the homepage only ever shows the first 3 Includes
+  // lines (components/TourCard.tsx) — capping input here at 3 lines means
+  // the admin can never type something they won't actually see live.
   function handleIncludesChange(value: string) {
-    setIncludesText(value);
+    const lines = value.split("\n");
+    setIncludesText(lines.length > 3 ? lines.slice(0, 3).join("\n") : value);
     setDirty(true);
   }
 
@@ -140,13 +144,16 @@ export default function TourForm({
       </div>
 
       <div>
-        <label className={labelClass}>Includes (one per line)</label>
+        <label className={labelClass}>Includes (one per line — max 3)</label>
         <textarea
-          rows={4}
+          rows={3}
           value={includesText}
           onChange={(e) => handleIncludesChange(e.target.value)}
           className={inputClass}
         />
+        <p className="mt-1 text-xs text-amber-700">
+          ⚠️ Only the first 3 lines show on the ticket card — a 4th line can&apos;t be added here.
+        </p>
       </div>
 
       <div className="grid gap-5 sm:grid-cols-2">

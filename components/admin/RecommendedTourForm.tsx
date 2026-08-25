@@ -30,23 +30,6 @@ export default function RecommendedTourForm({
     setSaved(false);
   }
 
-  function updateReason(i: number, value: string) {
-    const next = [...content.featuredReasons];
-    next[i] = value;
-    update("featuredReasons", next);
-  }
-
-  function addReason() {
-    update("featuredReasons", [...content.featuredReasons, ""]);
-  }
-
-  function removeReason(i: number) {
-    update(
-      "featuredReasons",
-      content.featuredReasons.filter((_, idx) => idx !== i)
-    );
-  }
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
@@ -122,31 +105,6 @@ export default function RecommendedTourForm({
             placeholder="Best Price · Limited Availability"
           />
         </div>
-      </div>
-
-      <div>
-        <label className={labelClass}>"Why we recommend this" bullets (first 2 shown on the card)</label>
-        <div className="space-y-2">
-          {content.featuredReasons.map((reason, i) => (
-            <div key={i} className="flex gap-2">
-              <input value={reason} onChange={(e) => updateReason(i, e.target.value)} className={inputClass} />
-              <button
-                type="button"
-                onClick={() => removeReason(i)}
-                className="shrink-0 text-xs font-medium text-red-600 hover:text-red-700"
-              >
-                Remove
-              </button>
-            </div>
-          ))}
-        </div>
-        <button
-          type="button"
-          onClick={addReason}
-          className="mt-2 rounded-lg border border-dashed border-stone-300 px-3 py-1.5 text-xs font-medium text-stone-600 hover:bg-stone-50"
-        >
-          + Add reason
-        </button>
       </div>
 
       <div className="border-t border-stone-200 pt-5">
