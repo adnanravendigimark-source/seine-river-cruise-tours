@@ -63,12 +63,15 @@ export default function TourCard({
           dangerouslySetInnerHTML={{ __html: tour.description }}
         />
 
-        {/* First 3 admin "Includes" items, one compact line each. */}
-        <div className="mt-3 space-y-1">
+        {/* First 3 admin "Includes" items, boxed. */}
+        <div className="mt-4 space-y-1.5">
           {tour.includes.slice(0, 3).map((item) => (
-            <div key={item} className="flex items-center gap-1.5 text-[11.5px] text-stone-900/75">
-              <span className="text-seine-teal font-bold shrink-0">✓</span>
-              <span className="leading-tight line-clamp-1">{item}</span>
+            <div
+              key={item}
+              className="flex items-start gap-2 rounded-md bg-stone-50 px-2.5 py-1.5 text-[11.5px] text-stone-900/80 border border-stone-100"
+            >
+              <span className="mt-0.5 text-seine-teal font-bold shrink-0">✓</span>
+              <span className="leading-tight font-medium line-clamp-1">{item}</span>
             </div>
           ))}
         </div>
