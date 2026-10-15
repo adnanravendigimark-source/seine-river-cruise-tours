@@ -40,9 +40,8 @@ export default function Logo({
         </span>
         <div className="text-center leading-tight">
           <span
-            className={`block font-display text-2xl sm:text-3xl font-bold italic tracking-tight ${
-              isDark ? "text-white" : "text-stone-900"
-            }`}
+            className={`block font-display text-2xl sm:text-3xl font-bold italic tracking-tight ${isDark ? "text-white" : "text-stone-900"
+              }`}
           >
             {line1}
           </span>
@@ -70,18 +69,16 @@ export default function Logo({
   const wordmark = (
     <span className="flex min-w-0 items-center gap-3">
       <span
-        className={`h-8 w-[1.5px] shrink-0 rounded-full ${
-          isDark
+        className={`h-8 w-[1.5px] shrink-0 rounded-full ${isDark
             ? "bg-gradient-to-b from-amber-400/80 to-purple-500/30"
             : "bg-gradient-to-b from-purple-600/60 to-amber-400/30"
-        }`}
+          }`}
         aria-hidden="true"
       />
       <div className="flex min-w-0 flex-col leading-[1.08]">
         <span
-          className={`block truncate font-display text-[1.4rem] sm:text-[1.5rem] font-bold italic tracking-tight ${
-            isDark ? "text-white" : "text-stone-900"
-          }`}
+          className={`block truncate font-display text-[1.4rem] sm:text-[1.5rem] font-bold italic tracking-tight ${isDark ? "text-white" : "text-stone-900"
+            }`}
         >
           {line1}
         </span>

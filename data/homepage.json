@@ -1,11 +1,11 @@
 {
-  "heroBadge": "⚓ Certified operators · Free cancellation · Instant confirmation",
-  "heroHeading": "Seine River Cruise Tours — See Paris From the Water",
-  "heroSubheading": "Glide past the Eiffel Tower, Notre-Dame, and the Louvre on a sightseeing or evening cruise along the Seine. Book online — instant confirmation, free cancellation on most tickets.",
-  "heroImage": "https://images.unsplash.com/photo-1760281853031-7d82263729b6?q=80&w=2400&auto=format&fit=crop",
-  "heroImageAlt": "The Eiffel Tower and the Seine River glowing at golden hour in Paris",
+  "heroBadge": "CERTIFIED OPERATORS • FREE CANCELLATION • INSTANT CONFIRMATION",
+  "heroHeading": "Discover Paris on a\nSeine River Cruise",
+  "heroSubheading": "Glide past iconic landmarks, from the Eiffel Tower to Notre-Dame, and experience the magic of Paris from the water.",
+  "heroImage": "https://vel8aqzfqfybmsb2.public.blob.vercel-storage.com/uploads/seine-hero-sunset-eiffel-LfZTRYcMlbcASpfn28bpVZHKTB3Oc7.jpg",
+  "heroImageAlt": "Discover Paris on a Seine River Cruise sunset view with the illuminated Eiffel Tower",
   "ratingValue": "4.36 / 5",
-  "ratingCount": "62,000+ verified reviews",
+  "ratingCount": "132,000+ verified reviews",
   "showFeaturedTour": true,
   "featuredTourId": "seine-1-hour-sightseeing-cruise",
   "featuredBadgeLabel": "Most Popular",
@@ -14,5 +14,39 @@
     "62,000+ verified reviews — rated 4.36 / 5 on GetYourGuide",
     "Departs every 30–45 minutes from Port de la Bourdonnais",
     "Free cancellation up to 24 hours before departure"
+  ],
+  "heroCtaPrimaryText": "Explore River Cruises",
+  "heroCtaPrimaryHref": "/#tours",
+  "heroCtaSecondaryText": "Compare Ticket Prices",
+  "heroCtaSecondaryHref": "/#prices",
+  "heroGallery": [
+    {
+      "src": "https://vel8aqzfqfybmsb2.public.blob.vercel-storage.com/uploads/seine-card-sightseeing-cruises-yJiRIorloqpLR1h5oaXBjtUH7vHneF.jpg",
+      "alt": "Sightseeing cruise boat on the Seine River in Paris",
+      "label": "Sightseeing Cruises",
+      "href": "/#tours",
+      "icon": "boat"
+    },
+    {
+      "src": "https://vel8aqzfqfybmsb2.public.blob.vercel-storage.com/uploads/seine-card-the-louvre-DB5NvVKcQ6x7n05zeqPsIy0jzM4Mjm.jpg",
+      "alt": "The Louvre glass pyramid illuminated at dusk in Paris",
+      "label": "The Louvre",
+      "href": "/#what-you-see",
+      "icon": "museum"
+    },
+    {
+      "src": "https://vel8aqzfqfybmsb2.public.blob.vercel-storage.com/uploads/seine-card-evening-cruises-hFxuUFdUTN5RWwkFSqUwnxcR5WVfhD.jpg",
+      "alt": "Evening illuminated cruise boat on the Seine River in Paris",
+      "label": "Evening Cruises",
+      "href": "/#illuminations",
+      "icon": "moon"
+    },
+    {
+      "src": "https://vel8aqzfqfybmsb2.public.blob.vercel-storage.com/uploads/seine-card-riverside-paris-MTYkRuZ1eEcNP4cTukZd6O5HyfdI3S.jpg",
+      "alt": "Historic riverside Parisian architecture along the Seine",
+      "label": "Riverside Paris",
+      "href": "/#what-you-see",
+      "icon": "pin"
+    }
   ]
 }
