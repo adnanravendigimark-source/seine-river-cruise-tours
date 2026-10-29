@@ -1,3 +1,4 @@
+import { withSiteRevalidate } from "@/lib/revalidateSite";
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getSafeUsers, createUser, type UserRole } from "@/lib/users";
@@ -33,7 +34,7 @@ export async function GET() {
   return NextResponse.json(await getSafeUsers());
 }
 
-export async function POST(req: Request) {
+async function POSTHandler(req: Request) {
   const denied = await requireAdmin();
   if (denied) return denied;
 
@@ -68,3 +69,5 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: message }, { status: isDbError ? 500 : 400 });
   }
 }
+
+export const POST = withSiteRevalidate(POSTHandler);

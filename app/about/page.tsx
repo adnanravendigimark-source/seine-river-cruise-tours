@@ -6,7 +6,6 @@ import SafeImage from "@/components/SafeImage";
 import { getAboutPage } from "@/lib/about";
 import { resolveRobots, resolveCanonical, resolveOg } from "@/lib/seo";
 
-export const dynamic = "force-dynamic";
 
 // Every field below (title, description, canonical, indexing, follow, OG)
 // comes from the admin-editable About page content (lib/about.ts) —

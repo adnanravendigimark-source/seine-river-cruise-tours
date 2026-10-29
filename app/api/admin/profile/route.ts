@@ -1,3 +1,4 @@
+import { withSiteRevalidate } from "@/lib/revalidateSite";
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getUsers, updateUser } from "@/lib/users";
@@ -10,7 +11,7 @@ export const dynamic = "force-dynamic";
 // PUT /api/admin/profile — lets the currently-logged-in admin/editor
 // change their own password. Requires current password for verification.
 // Works for both the .env owner account and DB users.
-export async function PUT(req: Request) {
+async function PUTHandler(req: Request) {
   const session = await getSession();
   if (!session) {
     return NextResponse.json({ error: "Not authenticated." }, { status: 401 });
@@ -71,3 +72,5 @@ export async function PUT(req: Request) {
     return NextResponse.json({ error: message }, { status: isDbError ? 500 : 400 });
   }
 }
+
+export const PUT = withSiteRevalidate(PUTHandler);

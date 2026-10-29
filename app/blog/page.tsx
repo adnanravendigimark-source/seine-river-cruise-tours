@@ -12,7 +12,6 @@ import { resolveRobots, resolveCanonical, resolveOg } from "@/lib/seo";
 // Posts live in /data/posts.json (or Postgres once configured), editable
 // from /admin/posts — render dynamically so new/edited posts show up
 // without a rebuild.
-export const dynamic = "force-dynamic";
 
 // Every field below comes from the Blog listing page's admin-editable SEO
 // settings (lib/settings.ts, edited at /admin/pages) — nothing is hardcoded.

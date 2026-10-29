@@ -1,3 +1,4 @@
+import { withSiteRevalidate } from "@/lib/revalidateSite";
 import { NextResponse } from "next/server";
 import { getHomepageContent, saveRecommendedTour, type HomepageContent } from "@/lib/homepage";
 import { dbErrorMessage } from "@/lib/db";
@@ -24,7 +25,7 @@ export async function GET() {
 // this page (and vice versa) — this dedicated route (added alongside the
 // full homepage-CMS rollout) closes that gap, matching the pattern already
 // used for Homepage vs. Indexing.
-export async function PUT(req: Request) {
+async function PUTHandler(req: Request) {
   try {
     const body = (await req.json().catch(() => null)) as HomepageContent | null;
     if (!body) {
@@ -42,3 +43,5 @@ export async function PUT(req: Request) {
     return NextResponse.json({ error: dbErrorMessage(err) }, { status: 500 });
   }
 }
+
+export const PUT = withSiteRevalidate(PUTHandler);

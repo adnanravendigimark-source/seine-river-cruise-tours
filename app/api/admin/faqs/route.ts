@@ -1,3 +1,4 @@
+import { withSiteRevalidate } from "@/lib/revalidateSite";
 import { NextResponse } from "next/server";
 import { getFaqs, saveFaqs, type FAQ } from "@/lib/data";
 import { DB_ERROR_MESSAGE } from "@/lib/db";
@@ -13,7 +14,7 @@ export async function GET() {
   return NextResponse.json(await getFaqs());
 }
 
-export async function PUT(req: Request) {
+async function PUTHandler(req: Request) {
   const body = (await req.json()) as FAQ[];
   if (!Array.isArray(body)) {
     return NextResponse.json({ error: "Expected an array of FAQs." }, { status: 400 });
@@ -25,3 +26,5 @@ export async function PUT(req: Request) {
   }
   return NextResponse.json({ ok: true });
 }
+
+export const PUT = withSiteRevalidate(PUTHandler);

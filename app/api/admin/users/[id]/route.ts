@@ -1,3 +1,4 @@
+import { withSiteRevalidate } from "@/lib/revalidateSite";
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getUsers, updateUser, deleteUser, type UserRole } from "@/lib/users";
@@ -24,7 +25,7 @@ function parsePages(input: unknown): PageKey[] {
   return input.filter((p): p is PageKey => (PAGE_KEYS as readonly string[]).includes(p));
 }
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+async function PUTHandler(req: Request, { params }: { params: { id: string } }) {
   const denied = await requireAdmin();
   if (denied) return denied;
 
@@ -65,7 +66,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   }
 }
 
-export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
+async function DELETEHandler(_req: Request, { params }: { params: { id: string } }) {
   const session = await getSession();
   if (!session || session.role !== "admin") {
     return NextResponse.json({ error: "Admins only." }, { status: 403 });
@@ -86,3 +87,6 @@ export async function DELETE(_req: Request, { params }: { params: { id: string }
   }
   return NextResponse.json({ ok: true });
 }
+
+export const PUT = withSiteRevalidate(PUTHandler);
+export const DELETE = withSiteRevalidate(DELETEHandler);

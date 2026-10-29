@@ -1,3 +1,4 @@
+import { withSiteRevalidate } from "@/lib/revalidateSite";
 import { NextResponse } from "next/server";
 
 // Force this route to always run as a live serverless function rather than
@@ -14,6 +15,8 @@ export async function GET() {
   return NextResponse.json({ error: "Not found" }, { status: 404 });
 }
 
-export async function PUT() {
+async function PUTHandler() {
   return NextResponse.json({ error: "Not found" }, { status: 404 });
 }
+
+export const PUT = withSiteRevalidate(PUTHandler);

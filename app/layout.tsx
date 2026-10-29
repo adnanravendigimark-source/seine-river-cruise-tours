@@ -13,7 +13,6 @@ import "./globals.css";
 // the search-indexing toggle below) get cached at build time instead of
 // re-checked on every request. Setting it here at the root guarantees the
 // toggle takes effect immediately everywhere, no rebuild required.
-export const dynamic = "force-dynamic";
 
 // Real display typeface, loaded once here and exposed as a CSS variable so
 // every font-display usage site-wide (headings, the logo wordmark) picks

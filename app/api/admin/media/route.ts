@@ -1,3 +1,4 @@
+import { withSiteRevalidate } from "@/lib/revalidateSite";
 import { NextResponse } from "next/server";
 import { getMediaLibrary, recordMediaUpload } from "@/lib/media";
 import { getMediaUsageMap } from "@/lib/mediaUsage";
@@ -26,7 +27,7 @@ export async function GET() {
 // filename/content-type/size are known for a pasted URL, so those are left
 // blank; `recordMediaUpload`'s ON CONFLICT (url) DO NOTHING makes this safe
 // to call repeatedly (e.g. every image insert) without creating duplicates.
-export async function POST(req: Request) {
+async function POSTHandler(req: Request) {
   let url = "";
   try {
     const body = await req.json();
@@ -40,3 +41,5 @@ export async function POST(req: Request) {
   await recordMediaUpload({ url, filename: "", contentType: "", sizeBytes: 0 });
   return NextResponse.json({ ok: true });
 }
+
+export const POST = withSiteRevalidate(POSTHandler);

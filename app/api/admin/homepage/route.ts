@@ -1,3 +1,4 @@
+import { withSiteRevalidate } from "@/lib/revalidateSite";
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import {
@@ -29,7 +30,7 @@ export async function GET() {
 // no_follow (owned by PUT /api/admin/indexing) even though the client
 // still posts the full HomepageContent shape — see each save function in
 // lib/homepage.ts for why that split exists.
-export async function PUT(req: Request) {
+async function PUTHandler(req: Request) {
   // Whole handler wrapped in one try/catch — not just the DB call — so a
   // malformed body or any unexpected error still comes back as a real JSON
   // error the admin UI can show, instead of a platform error page that
@@ -83,3 +84,5 @@ export async function PUT(req: Request) {
     return NextResponse.json({ error: dbErrorMessage(err) }, { status: 500 });
   }
 }
+
+export const PUT = withSiteRevalidate(PUTHandler);

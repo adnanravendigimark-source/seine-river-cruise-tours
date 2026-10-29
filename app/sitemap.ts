@@ -7,7 +7,6 @@ import { getBlogSeoSettings } from "@/lib/settings";
 import { getAboutPage } from "@/lib/about";
 import { getContactPage } from "@/lib/contact";
 
-export const dynamic = "force-dynamic";
 
 // Auto-generated at request time (this route is dynamic by nature — it
 // reads live blog posts from the database) and served at /sitemap.xml.
@@ -16,6 +15,9 @@ export const dynamic = "force-dynamic";
 // A URL only belongs in the sitemap if it is indexable and do-follow (noIndex: false, noFollow: false).
 // Every page is index/follow by default; a page only drops out of the sitemap
 // once its toggle is switched off in the admin dashboard.
+// Rebuilt daily at most, and immediately after any admin save.
+export const revalidate = 86400;
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [homepage, policy, posts, blogSeo, about, contact] = await Promise.all([
     getHomepageContent(),

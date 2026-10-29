@@ -5,7 +5,6 @@ import Breadcrumbs from "@/components/Breadcrumbs";
 import { getPrivacyPolicy } from "@/lib/legal";
 import { resolveRobots, resolveCanonical, resolveOg } from "@/lib/seo";
 
-export const dynamic = "force-dynamic";
 
 // Every field below comes from the admin-editable Privacy Policy content
 // (lib/legal.ts, edited at /admin/privacy) — nothing is hardcoded.

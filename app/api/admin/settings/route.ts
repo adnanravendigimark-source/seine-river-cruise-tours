@@ -1,3 +1,4 @@
+import { withSiteRevalidate } from "@/lib/revalidateSite";
 import { NextResponse } from "next/server";
 import { getBlogSeoSettings, saveBlogSeoSettings } from "@/lib/settings";
 import { dbErrorMessage } from "@/lib/db";
@@ -19,7 +20,7 @@ export async function GET() {
   return NextResponse.json(await getBlogSeoSettings());
 }
 
-export async function PUT(req: Request) {
+async function PUTHandler(req: Request) {
   const body = await req.json().catch(() => null);
   const data = {
     metaTitle: body?.metaTitle || "",
@@ -39,3 +40,5 @@ export async function PUT(req: Request) {
   }
   return NextResponse.json({ ok: true });
 }
+
+export const PUT = withSiteRevalidate(PUTHandler);

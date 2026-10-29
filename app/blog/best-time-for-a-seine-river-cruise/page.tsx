@@ -19,7 +19,6 @@ const slug = "best-time-for-a-seine-river-cruise";
 
 // Content lives in /data/posts.json, editable from /admin/posts — render
 // dynamically so edits show up without a rebuild.
-export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
   const post = await getPost(slug);

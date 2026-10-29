@@ -7,7 +7,6 @@ import { getContactPage } from "@/lib/contact";
 import { getIconComponent } from "@/lib/iconMap";
 import { resolveRobots, resolveCanonical, resolveOg } from "@/lib/seo";
 
-export const dynamic = "force-dynamic";
 
 // Every field below (title, description, canonical, indexing, follow, OG)
 // comes from the admin-editable Contact page content (lib/contact.ts) —

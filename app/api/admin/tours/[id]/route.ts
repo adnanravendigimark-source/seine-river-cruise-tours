@@ -1,3 +1,4 @@
+import { withSiteRevalidate } from "@/lib/revalidateSite";
 import { NextResponse } from "next/server";
 import { getToursRaw, saveTours, type TourRecord } from "@/lib/data";
 import { getSession } from "@/lib/session";
@@ -16,7 +17,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
   return NextResponse.json(tour);
 }
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+async function PUTHandler(req: Request, { params }: { params: { id: string } }) {
   const body = (await req.json()) as TourRecord;
   const tours = await getToursRaw();
   const idx = tours.findIndex((t) => t.id === params.id);
@@ -30,7 +31,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   return NextResponse.json({ ok: true });
 }
 
-export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
+async function DELETEHandler(_req: Request, { params }: { params: { id: string } }) {
   const session = await getSession();
   if (!session || session.role !== "admin") {
     return NextResponse.json({ error: "Only admins can delete." }, { status: 403 });
@@ -48,3 +49,6 @@ export async function DELETE(_req: Request, { params }: { params: { id: string }
   }
   return NextResponse.json({ ok: true });
 }
+
+export const PUT = withSiteRevalidate(PUTHandler);
+export const DELETE = withSiteRevalidate(DELETEHandler);

@@ -17,7 +17,6 @@ import { resolveRobots, resolveCanonical, resolveOg, stripHtml } from "@/lib/seo
 
 // Content (hero copy, tours, FAQs) lives in /data and is editable from
 // /admin — render dynamically so edits show up without a rebuild.
-export const dynamic = "force-dynamic";
 
 // title/description are left unset so they inherit the root layout's
 // defaults — but canonical, robots, and OG are always set here from the

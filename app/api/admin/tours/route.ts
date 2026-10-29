@@ -1,3 +1,4 @@
+import { withSiteRevalidate } from "@/lib/revalidateSite";
 import { NextResponse } from "next/server";
 import { getToursRaw, saveTours, type TourRecord } from "@/lib/data";
 import { dbErrorMessage } from "@/lib/db";
@@ -13,7 +14,7 @@ export async function GET() {
   return NextResponse.json(await getToursRaw());
 }
 
-export async function POST(req: Request) {
+async function POSTHandler(req: Request) {
   const body = (await req.json()) as TourRecord;
 
   if (!body.id || !body.title) {
@@ -33,3 +34,5 @@ export async function POST(req: Request) {
   }
   return NextResponse.json({ ok: true });
 }
+
+export const POST = withSiteRevalidate(POSTHandler);

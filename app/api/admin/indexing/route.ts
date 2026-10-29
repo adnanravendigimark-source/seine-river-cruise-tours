@@ -1,3 +1,4 @@
+import { withSiteRevalidate } from "@/lib/revalidateSite";
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { getIndexingOverview, setIndexing, type IndexingPageType } from "@/lib/indexing";
@@ -40,7 +41,7 @@ export async function GET() {
 // this endpoint just needs to touch the one row it's told to and nothing
 // else, which is why lib/indexing.ts's setIndexing() only ever runs a
 // scoped UPDATE on that page's own no_index/no_follow columns.
-export async function PUT(req: Request) {
+async function PUTHandler(req: Request) {
   const denied = await requireAdmin();
   if (denied) return denied;
 
@@ -64,3 +65,5 @@ export async function PUT(req: Request) {
     return NextResponse.json({ error: dbErrorMessage(err) }, { status: 500 });
   }
 }
+
+export const PUT = withSiteRevalidate(PUTHandler);

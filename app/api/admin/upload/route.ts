@@ -1,3 +1,4 @@
+import { withSiteRevalidate } from "@/lib/revalidateSite";
 import { NextResponse } from "next/server";
 import { put } from "@vercel/blob";
 import { recordMediaUpload } from "@/lib/media";
@@ -14,7 +15,7 @@ export const dynamic = "force-dynamic";
 // local filesystem) specifically because Vercel's deployed functions have
 // a read-only filesystem at runtime — this works identically in local dev
 // and in production as long as BLOB_READ_WRITE_TOKEN is set.
-export async function POST(req: Request) {
+async function POSTHandler(req: Request) {
   if (!process.env.BLOB_READ_WRITE_TOKEN) {
     return NextResponse.json(
       {
@@ -68,3 +69,5 @@ export async function POST(req: Request) {
     );
   }
 }
+
+export const POST = withSiteRevalidate(POSTHandler);

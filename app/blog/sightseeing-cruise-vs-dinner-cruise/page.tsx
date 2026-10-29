@@ -17,7 +17,6 @@ import { extractTableOfContents } from "@/lib/tableOfContents";
 
 const slug = "sightseeing-cruise-vs-dinner-cruise";
 
-export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
   const post = await getPost(slug);

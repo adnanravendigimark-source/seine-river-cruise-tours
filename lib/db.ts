@@ -29,9 +29,10 @@ if (!process.env.DATABASE_URL) {
 // admin saves report success but the "new" content never appears, no
 // matter how many browser/CDN/router caching layers are disabled (this
 // bit is a distinct, server-internal cache those don't touch at all).
-export const sql = neon(process.env.DATABASE_URL || "postgres://unset", {
-  fetchOptions: { cache: "no-store" },
-});
+// No `cache: "no-store"`: it forced every public page to render dynamically
+// (a Neon wake-up per visit). Admin pages and /api routes are force-dynamic,
+// so their queries stay uncached.
+export const sql = neon(process.env.DATABASE_URL || "postgres://unset");
 
 // Shown to the admin (instead of a raw crash) when a save fails because
 // the database couldn't be reached or rejected the query — e.g. DATABASE_URL

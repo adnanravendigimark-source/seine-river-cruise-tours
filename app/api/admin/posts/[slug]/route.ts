@@ -1,3 +1,4 @@
+import { withSiteRevalidate } from "@/lib/revalidateSite";
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { getPosts, getPost, savePosts, type Post } from "@/lib/posts";
@@ -18,7 +19,7 @@ export async function GET(_req: Request, { params }: { params: { slug: string } 
   return NextResponse.json(post);
 }
 
-export async function PUT(req: Request, { params }: { params: { slug: string } }) {
+async function PUTHandler(req: Request, { params }: { params: { slug: string } }) {
   const body = (await req.json()) as Post;
   const posts = await getPosts();
   const idx = posts.findIndex((p) => p.slug === params.slug);
@@ -64,7 +65,7 @@ export async function PUT(req: Request, { params }: { params: { slug: string } }
   return NextResponse.json({ ok: true, slug: nextSlug });
 }
 
-export async function DELETE(_req: Request, { params }: { params: { slug: string } }) {
+async function DELETEHandler(_req: Request, { params }: { params: { slug: string } }) {
   const session = await getSession();
   if (!session || session.role !== "admin") {
     return NextResponse.json({ error: "Only admins can delete." }, { status: 403 });
@@ -87,3 +88,6 @@ export async function DELETE(_req: Request, { params }: { params: { slug: string
 
   return NextResponse.json({ ok: true });
 }
+
+export const PUT = withSiteRevalidate(PUTHandler);
+export const DELETE = withSiteRevalidate(DELETEHandler);
