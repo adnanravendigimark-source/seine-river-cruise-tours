@@ -295,6 +295,15 @@ export default function PostForm({
                 </Field>
               </div>
 
+              <Field label="Facts last checked" hint="Only set this after checking the post's prices, times and rules against official sources. Shown on the page.">
+                <input
+                  type="date"
+                  value={post.lastChecked || ""}
+                  onChange={(e) => update("lastChecked", e.target.value)}
+                  className={inputClass}
+                />
+              </Field>
+
               <ImageUploadField label="Hero image" value={post.image} onChange={(url) => update("image", url)} aspectRatio={21 / 9} />
               <Field label="Image alt text" hint="Describe the photo for screen readers and Google Images.">
                 <input required value={post.imageAlt} onChange={(e) => update("imageAlt", e.target.value)} className={inputClass} />
@@ -331,7 +340,7 @@ export default function PostForm({
               <p className="text-xs text-stone-500">~{wordCount} words in the article body.</p>
 
               <div className="border-t border-stone-200 pt-5">
-                <Field label="Recommended tour (cross-sell widget)">
+                <Field label="Recommended tour (booking box + sidebar card)">
                   <select value={post.recommendedTourId} onChange={(e) => update("recommendedTourId", e.target.value)} className={inputClass}>
                     {tours.map((t) => (
                       <option key={t.id} value={t.id}>
@@ -347,7 +356,7 @@ export default function PostForm({
                     onChange={(e) => update("recommendedTourAfterBlock", e.target.checked ? 1 : undefined)}
                     className="h-4 w-4 rounded border-stone-300"
                   />
-                  Show it under the article, before the "Ready to book?" box
+                  Show it as a booking box right after the Quick Answer
                 </label>
               </div>
             </SectionCard>

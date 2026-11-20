@@ -1,3 +1,5 @@
+import { formatCheckedDate } from "@/lib/checkedDate";
+import RecommendedTour from "@/components/RecommendedTour";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
@@ -12,7 +14,7 @@ import SafeImage from "@/components/SafeImage";
 import { getPost } from "@/lib/posts";
 import { getHomepageContent } from "@/lib/homepage";
 import { getRedirectTarget } from "@/lib/redirects";
-import { resolveRobots, resolveCanonical, resolveOg, buildArticleJsonLd } from "@/lib/seo";
+import { resolveRobots, resolveCanonical, resolveOg, buildArticleJsonLd, pageTitle } from "@/lib/seo";
 import { SITE_URL } from "@/lib/site";
 import { extractTableOfContents } from "@/lib/tableOfContents";
 
@@ -41,7 +43,7 @@ export async function generateMetadata({
     { title: post.metaTitle, description: post.metaDescription, image: post.image }
   );
   return {
-    title: post.metaTitle,
+    title: pageTitle(post.metaTitle),
     description: post.metaDescription,
     alternates: { canonical: resolveCanonical(`/blog/${params.slug}`, post.canonicalUrl) },
     robots: resolveRobots(post.noIndex, post.noFollow),
@@ -90,14 +92,22 @@ export default async function Post({ params }: { params: { slug: string } }) {
   return (
     <>
       <Header />
-      <Breadcrumbs items={[{ name: "Blog", path: "/blog" }, { name: post.category, path: `/blog/${post.slug}` }]} />
+      <Breadcrumbs items={[{ name: "Blog", path: "/blog" }, { name: post.title, path: `/blog/${post.slug}` }]} />
       <main>
         <div className="mx-auto max-w-4xl px-4 pt-6 sm:px-6">
-          <Link href="/blog" className="text-sm font-medium text-seine-teal">{s.backToGuidesText}</Link>
-          <div className="mt-6 flex items-center gap-3 text-xs font-semibold uppercase tracking-wide text-seine-teal">
+          <Link href="/blog" className="text-sm font-medium text-seine-amber">{s.backToGuidesText}</Link>
+          <div className="mt-6 flex items-center gap-3 text-xs font-semibold uppercase tracking-wide text-seine-amber">
             <span>{post.category}</span>
             <span className="h-1 w-1 rounded-full bg-stone-900/20" />
-            <span className="text-stone-900/40">{post.readTime}</span>
+            <span className="text-stone-900/65">{post.readTime}</span>
+            {formatCheckedDate(post.lastChecked) && (
+              <>
+                <span className="h-1 w-1 rounded-full bg-stone-900/20" />
+                <span className="normal-case tracking-normal text-stone-900/65">
+                  Facts checked {formatCheckedDate(post.lastChecked)}
+                </span>
+              </>
+            )}
           </div>
           <h1 className="mt-2 font-display text-3xl font-bold leading-tight text-stone-900 sm:text-4xl">
             {post.title}
@@ -117,15 +127,15 @@ export default async function Post({ params }: { params: { slug: string } }) {
 
         <div className="mx-auto max-w-6xl px-4 pb-16 pt-10 sm:px-6 lg:grid lg:grid-cols-[1fr_20rem] lg:gap-10">
           <div>
-            <TableOfContents items={toc} label={s.tocLabel} />
-
             <QuickAnswer label={s.quickAnswerLabel}>{post.quickAnswer}</QuickAnswer>
 
-            <BlogPostBody
-              content={contentHtml}
-              recommendedTourId={post.recommendedTourId}
-              showRecommendedTour={!!post.recommendedTourAfterBlock}
-            />
+            {/* Booking box right after the Quick Answer, where the reader has
+                their answer and is deciding — not after 2,000+ words. */}
+            {!!post.recommendedTourAfterBlock && <RecommendedTour tourId={post.recommendedTourId} />}
+
+            <TableOfContents items={toc} label={s.tocLabel} />
+
+            <BlogPostBody content={contentHtml} recommendedTourId={post.recommendedTourId} showRecommendedTour={false} />
 
             <div className="mt-10 rounded-2xl border border-seine-teal/20 bg-seine-teal/5 p-6">
               <p className="text-sm font-semibold text-stone-900">{post.ctaHeading}</p>

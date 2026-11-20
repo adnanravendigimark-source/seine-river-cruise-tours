@@ -166,6 +166,27 @@ export interface BlogPageSection {
   promoRecommendedText: string;
 }
 
+// "Plan your visit" cards (each links to a guide or an anchor).
+export interface PlanCard {
+  title: string;
+  body: string;
+  href: string;
+  linkText: string;
+}
+export interface PlanSection {
+  heading: string;
+  cards: PlanCard[];
+}
+
+// Last booking band before the footer. The button goes to the featured
+// tour's booking link (its own button text).
+export interface FinalCtaSection {
+  heading: string;
+  body: string;
+  secondaryText: string;
+  secondaryHref: string;
+}
+
 export interface HomepageSections {
   tours: TourSection;
   highlights: HighlightsSection;
@@ -177,6 +198,8 @@ export interface HomepageSections {
   notFound: NotFoundSection;
   blogTeaser: BlogTeaserSection;
   blogPage: BlogPageSection;
+  plan: PlanSection;
+  finalCta: FinalCtaSection;
 }
 
 // Site-wide navbar — edited from the Homepage admin tab for simplicity,
@@ -195,12 +218,23 @@ export interface HeaderContent {
   // mobile sticky bar, blog sidebar) — see components/TourCard.tsx,
   // TourPromoCard.tsx, FeaturedTour.tsx, BlogSidebar.tsx.
   bookNowText: string;
+  // Short disclosure shown next to booking buttons (blank = default text).
+  affiliateNote: string;
   navLinks: NavLink[];
   ctaText: string;
   ctaHref: string;
 }
 
 // Site-wide footer — same "edited from Homepage, rendered everywhere" deal.
+export const DEFAULT_AFFILIATE_NOTE =
+  "We earn a commission if you book through these links, at no extra cost to you.";
+
+// Blank in the admin falls back to the default: the disclosure next to
+// booking links should never disappear by accident.
+export function affiliateNoteText(header: Pick<HeaderContent, "affiliateNote">): string {
+  return header.affiliateNote?.trim() || DEFAULT_AFFILIATE_NOTE;
+}
+
 export interface FooterContent {
   tagline: string; // rich text HTML
   columns: FooterColumn[];
@@ -286,6 +320,7 @@ export const DEFAULT_HEADER: HeaderContent = {
   logoLine2: "Cruise Tours",
   homeLabel: "Home",
   bookNowText: "Book Now",
+  affiliateNote: "",
   navLinks: [
     { label: "Home", href: "/" },
     { label: "About Us", href: "/about" },
@@ -522,6 +557,41 @@ export const DEFAULT_SECTIONS: HomepageSections = {
     sidebarCompareLinkText: "Compare all cruises & tickets →",
     promoRecommendedText: "Recommended for you",
   },
+  plan: {
+    heading: "Plan your cruise",
+    cards: [
+      {
+        title: "How long is a Seine river cruise?",
+        body: "Sightseeing and evening cruises take about 1 hour, the lunch cruise 2 hours, and dinner cruises 1 h 45 min to 2.5 hours.",
+        href: "/blog/how-long-is-seine-river-cruise",
+        linkText: "How long each cruise takes",
+      },
+      {
+        title: "Where do the boats leave from?",
+        body: "The 1-hour, lunch and Bateaux Parisiens dinner cruises leave from the foot of the Eiffel Tower.",
+        href: "/blog/where-do-seine-river-cruises-depart",
+        linkText: "Piers and boarding",
+      },
+      {
+        title: "Day or night?",
+        body: "Daytime for architecture and photos; evening for lit-up bridges and the Eiffel Tower's hourly sparkle.",
+        href: "/blog/seine-river-cruise-day-or-night",
+        linkText: "Compare day and night",
+      },
+      {
+        title: "What will you see?",
+        body: "The Eiffel Tower, the Musée d'Orsay, the Louvre, Notre-Dame and the bridges in between.",
+        href: "/blog/what-to-see-seine-river-cruise",
+        linkText: "Landmarks along the route",
+      },
+    ],
+  },
+  finalCta: {
+    heading: "Ready to pick a time?",
+    body: "The 1-hour cruise from the Eiffel Tower is our pick for a first visit. Check live times on GetYourGuide; you can cancel free up to 24 hours before.",
+    secondaryText: "Compare all cruises",
+    secondaryHref: "#prices",
+  }
 };
 
 // Used only if the `homepage` table is empty or unreachable (e.g. before
@@ -631,6 +701,8 @@ function rowToHomepage(row: any): HomepageContent {
       notFound: { ...DEFAULT_SECTIONS.notFound, ...sectionsRaw.notFound },
       blogTeaser: { ...DEFAULT_SECTIONS.blogTeaser, ...sectionsRaw.blogTeaser },
       blogPage: { ...DEFAULT_SECTIONS.blogPage, ...sectionsRaw.blogPage },
+      plan: { ...DEFAULT_SECTIONS.plan, ...sectionsRaw.plan },
+      finalCta: { ...DEFAULT_SECTIONS.finalCta, ...sectionsRaw.finalCta },
     },
     header: parseJsonWithDefault<HeaderContent>(row.header_json, DEFAULT_HEADER),
     footer: parseJsonWithDefault<FooterContent>(row.footer_json, DEFAULT_FOOTER),

@@ -18,6 +18,7 @@ import type {
   HoursRow,
   GalleryImage,
   HighlightCard,
+  PlanCard,
 } from "@/lib/homepage";
 import type { Tour } from "@/lib/data";
 
@@ -47,6 +48,8 @@ const CONTENT_SECTIONS = [
   { id: "sec-tower", label: "Illuminations Cruise" },
   { id: "sec-practical", label: "Practical Info" },
   { id: "sec-price", label: "Price Comparison" },
+  { id: "sec-plan", label: "Plan Your Cruise" },
+  { id: "sec-finalcta", label: "Final Booking Band" },
   { id: "sec-blogteaser", label: "Blog Teaser" },
   { id: "sec-faq", label: "FAQ" },
   { id: "sec-blogpages", label: "Blog Pages" },
@@ -218,6 +221,16 @@ export default function HomepageForm({ initial, tours }: { initial: HomepageCont
       ...c,
       sections: { ...c.sections, notFound: { ...c.sections.notFound, ...patch } },
     }));
+    setSaved(false);
+  }
+
+  function updatePlan(patch: Partial<HomepageContent["sections"]["plan"]>) {
+    setContent((c) => ({ ...c, sections: { ...c.sections, plan: { ...c.sections.plan, ...patch } } }));
+    setSaved(false);
+  }
+
+  function updateFinalCta(patch: Partial<HomepageContent["sections"]["finalCta"]>) {
+    setContent((c) => ({ ...c, sections: { ...c.sections, finalCta: { ...c.sections.finalCta, ...patch } } }));
     setSaved(false);
   }
 
@@ -729,6 +742,59 @@ export default function HomepageForm({ initial, tours }: { initial: HomepageCont
               </Field>
               <Field label={'"Read article" link text'}>
                 <input value={content.sections.blogTeaser.readArticleText} onChange={(e) => updateBlogTeaser({ readArticleText: e.target.value })} className={inputClass} />
+              </Field>
+            </div>
+          </SectionCard>
+
+          <SectionCard
+            id="sec-plan"
+            title="Plan your visit cards"
+            description="Short answers that link to the full guides. Links can be /blog/… paths or #anchors on the homepage."
+            open={!!openSections["sec-plan"]}
+            onToggle={() => toggleSection("sec-plan")}
+          >
+            <Field label="Heading (H2)">
+              <input value={content.sections.plan.heading} onChange={(e) => updatePlan({ heading: e.target.value })} className={inputClass} />
+            </Field>
+            <Field label="Cards">
+              <RepeatableList<PlanCard>
+                items={content.sections.plan.cards}
+                onChange={(cards) => updatePlan({ cards })}
+                newItem={() => ({ title: "", body: "", href: "", linkText: "" })}
+                addLabel="+ Add card"
+                renderItem={(item, upd) => (
+                  <div className="grid gap-2">
+                    <input value={item.title} placeholder="Title (H3)" onChange={(e) => upd({ ...item, title: e.target.value })} className={inputClass} />
+                    <textarea rows={2} value={item.body} placeholder="Short answer" onChange={(e) => upd({ ...item, body: e.target.value })} className={inputClass} />
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      <input value={item.href} placeholder="/blog/… or #hours" onChange={(e) => upd({ ...item, href: e.target.value })} className={inputClass} />
+                      <input value={item.linkText} placeholder="Link text" onChange={(e) => upd({ ...item, linkText: e.target.value })} className={inputClass} />
+                    </div>
+                  </div>
+                )}
+              />
+            </Field>
+          </SectionCard>
+
+          <SectionCard
+            id="sec-finalcta"
+            title="Final booking band"
+            description="The last band before the footer. Its button books the featured tour."
+            open={!!openSections["sec-finalcta"]}
+            onToggle={() => toggleSection("sec-finalcta")}
+          >
+            <Field label="Heading (H2)">
+              <input value={content.sections.finalCta.heading} onChange={(e) => updateFinalCta({ heading: e.target.value })} className={inputClass} />
+            </Field>
+            <Field label="Text">
+              <textarea rows={2} value={content.sections.finalCta.body} onChange={(e) => updateFinalCta({ body: e.target.value })} className={inputClass} />
+            </Field>
+            <div className="grid gap-5 sm:grid-cols-2">
+              <Field label="Second button text">
+                <input value={content.sections.finalCta.secondaryText} onChange={(e) => updateFinalCta({ secondaryText: e.target.value })} className={inputClass} />
+              </Field>
+              <Field label="Second button link (#anchor or /path)">
+                <input value={content.sections.finalCta.secondaryHref} onChange={(e) => updateFinalCta({ secondaryHref: e.target.value })} className={inputClass} />
               </Field>
             </div>
           </SectionCard>

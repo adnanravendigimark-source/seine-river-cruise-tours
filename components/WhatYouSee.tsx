@@ -7,7 +7,7 @@ export default async function WhatYouSee() {
   const s = sections.why;
 
   return (
-    <section className="bg-white py-16">
+    <section className="border-t border-stone-900/10 bg-white py-16">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <h2 className="font-display text-3xl font-bold text-stone-900">{s.heading}</h2>
         <p
@@ -22,7 +22,7 @@ export default async function WhatYouSee() {
               {s.timeline.map((row, i) => (
                 <li key={row.time + i} className="relative">
                   <span className="absolute -left-[27px] top-1 h-2.5 w-2.5 rounded-full bg-seine-teal" />
-                  <span className="text-xs font-semibold text-seine-teal">{row.time}</span>
+                  <span className="text-xs font-semibold text-seine-amber">{row.time}</span>
                   <p className="text-sm text-stone-900/80">{row.step}</p>
                 </li>
               ))}
@@ -39,7 +39,7 @@ export default async function WhatYouSee() {
                 </li>
               ))}
             </ul>
-            <p className="mt-4 text-xs text-stone-900/50">{s.note}</p>
+            <p className="mt-4 text-xs text-stone-900/65">{s.note}</p>
           </div>
         </div>
 
@@ -49,7 +49,7 @@ export default async function WhatYouSee() {
             <div className="mt-4 grid gap-4 sm:grid-cols-3">
               {s.extraItems.map((point, i) => (
                 <div key={point.name + i} className="rounded-xl border border-stone-900/10 bg-stone-50 p-4">
-                  <p className="text-sm font-semibold text-seine-teal">{point.name}</p>
+                  <p className="text-sm font-semibold text-seine-amber">{point.name}</p>
                   <p className="mt-1 text-xs text-stone-900/70">{point.note}</p>
                 </div>
               ))}
@@ -61,7 +61,7 @@ export default async function WhatYouSee() {
           <p className="text-sm font-medium text-stone-900">{s.ctaText}</p>
           <a
             href={s.ctaHref}
-            className="shrink-0 rounded-full bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-600 px-6 py-3 text-sm font-bold text-white shadow-md shadow-amber-500/20 transition-all duration-300 hover:scale-[1.03] hover:shadow-amber-500/30"
+            className="shrink-0 rounded-full bg-seine-amber px-6 py-3 text-sm font-bold text-white transition-all duration-300 hover:brightness-110"
           >
             {s.ctaButtonText}
           </a>

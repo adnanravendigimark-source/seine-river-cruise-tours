@@ -1,3 +1,4 @@
+import AffiliateClickTracker from "@/components/AffiliateClickTracker";
 import type { Metadata } from "next";
 import Script from "next/script";
 import { Cormorant_Garamond } from "next/font/google";
@@ -50,6 +51,7 @@ const organizationJsonLd = {
   "@type": "Organization",
   name: "Seine River Cruise Tours",
   url: SITE_URL,
+  logo: `${SITE_URL}/icon.png`,
   description:
     "Independent guide comparing Seine River sightseeing cruises, dinner cruises, and evening illuminations cruises from licensed operators in Paris.",
 };
@@ -171,7 +173,7 @@ export default async function RootLayout({
           `}
         </Script>
       </head>
-      <body className="font-body bg-stone-50 text-stone-900 antialiased">
+      <body className="font-body bg-white text-stone-900 antialiased">
         {/* :root custom properties apply from anywhere in the document, so
             this doesn't need to live in <head> — Next.js's metadata API
             already owns <head> in the App Router, and manually adding one
@@ -186,6 +188,7 @@ export default async function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
         />
+        <AffiliateClickTracker />
       </body>
     </html>
   );

@@ -7,7 +7,7 @@ import SafeImage from "@/components/SafeImage";
 import { getPosts } from "@/lib/posts";
 import { getBlogSeoSettings } from "@/lib/settings";
 import { getHomepageContent } from "@/lib/homepage";
-import { resolveRobots, resolveCanonical, resolveOg } from "@/lib/seo";
+import { resolveRobots, resolveCanonical, resolveOg, pageTitle } from "@/lib/seo";
 
 // Posts live in /data/posts.json (or Postgres once configured), editable
 // from /admin/posts — render dynamically so new/edited posts show up
@@ -19,7 +19,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const settings = await getBlogSeoSettings();
   const og = resolveOg(settings, { title: settings.metaTitle, description: settings.metaDescription });
   return {
-    title: settings.metaTitle,
+    title: pageTitle(settings.metaTitle),
     description: settings.metaDescription,
     alternates: { canonical: resolveCanonical("/blog", settings.canonicalUrl) },
     robots: resolveRobots(settings.noIndex, settings.noFollow),
@@ -38,7 +38,7 @@ export default async function BlogIndexPage() {
       <Header />
       <main className="mx-auto max-w-5xl px-4 py-16 sm:px-6 sm:py-20">
         <div className="text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-seine-teal">
+          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-seine-amber">
             {s.eyebrow}
           </p>
           <h1 className="mt-3 font-display text-3xl font-bold text-stone-900 sm:text-4xl">
@@ -69,7 +69,7 @@ export default async function BlogIndexPage() {
               />
             </div>
             <div className="flex flex-col justify-center p-8 sm:p-10">
-              <span className="inline-flex w-fit rounded-full bg-seine-teal/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-seine-teal">
+              <span className="inline-flex w-fit rounded-full bg-seine-teal/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-seine-amber">
                 {featured.category}
               </span>
               <h2 className="mt-4 font-display text-2xl font-bold text-stone-900 group-hover:text-seine-amber">
@@ -102,10 +102,10 @@ export default async function BlogIndexPage() {
               </div>
               <div className="p-6">
                 <div className="flex items-center gap-3">
-                  <span className="inline-flex rounded-full bg-seine-teal/10 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-seine-teal">
+                  <span className="inline-flex rounded-full bg-seine-teal/10 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-seine-amber">
                     {post.category}
                   </span>
-                  <span className="text-xs text-stone-900/40">{post.readTime}</span>
+                  <span className="text-xs text-stone-900/65">{post.readTime}</span>
                 </div>
                 <h2 className="mt-3 font-display text-lg font-semibold text-stone-900 group-hover:text-seine-amber">
                   {post.title}

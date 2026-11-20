@@ -4,7 +4,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SafeImage from "@/components/SafeImage";
 import { getAboutPage } from "@/lib/about";
-import { resolveRobots, resolveCanonical, resolveOg } from "@/lib/seo";
+import { resolveRobots, resolveCanonical, resolveOg, pageTitle } from "@/lib/seo";
 
 
 // Every field below (title, description, canonical, indexing, follow, OG)
@@ -17,7 +17,7 @@ export async function generateMetadata(): Promise<Metadata> {
     { title: about.metaTitle, description: about.metaDescription, image: about.heroImage }
   );
   return {
-    title: about.metaTitle,
+    title: pageTitle(about.metaTitle),
     description: about.metaDescription,
     alternates: { canonical: resolveCanonical("/about", about.canonicalUrl) },
     robots: resolveRobots(about.noIndex, about.noFollow),
@@ -59,7 +59,7 @@ export default async function AboutPage() {
                     Home
                   </Link>
                 </li>
-                <li className="text-white/40">&gt;</li>
+                <li className="text-white/70">&gt;</li>
                 <li className="font-semibold text-white" aria-current="page">
                   About Us
                 </li>

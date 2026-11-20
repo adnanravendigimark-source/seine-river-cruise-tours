@@ -8,17 +8,17 @@ import { getHomepageContent } from "@/lib/homepage";
 // DEFAULT_SECTIONS.blogTeaser). The posts themselves come from /admin/posts.
 export default async function BlogSection() {
   const [allPosts, { sections }] = await Promise.all([getPosts(), getHomepageContent()]);
-  const posts = allPosts.filter((p) => !p.noIndex).slice(0, 3);
+  const posts = allPosts.filter((p) => !p.noIndex).slice(0, 6);
   const s = sections.blogTeaser;
 
   if (posts.length === 0) return null;
 
   return (
-    <section className="bg-stone-100/70 py-16 sm:py-24 border-t border-stone-200/60" id="blog-guides">
+    <section className="border-t border-stone-900/10 bg-white py-16 sm:py-24" id="blog-guides">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-seine-teal">
+            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-seine-amber">
               {s.eyebrow}
             </p>
             <h2 className="mt-2 font-display text-3xl font-bold tracking-tight text-stone-900 sm:text-4xl">
@@ -28,7 +28,7 @@ export default async function BlogSection() {
           </div>
           <Link
             href="/blog"
-            className="inline-flex items-center justify-center gap-2 self-start md:self-auto rounded-full bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-600 px-6 py-2.5 text-sm font-bold text-white shadow-md shadow-amber-500/20 transition-all duration-300 hover:scale-[1.03] hover:shadow-amber-500/30"
+            className="inline-flex items-center justify-center gap-2 self-start md:self-auto rounded-full bg-seine-amber px-6 py-2.5 text-sm font-bold text-white transition-all duration-300 hover:brightness-110"
           >
             <span>{s.viewAllText}</span>
             <span aria-hidden="true">→</span>
@@ -55,9 +55,9 @@ export default async function BlogSection() {
                   <span className="inline-flex rounded-full bg-emerald-50 px-2.5 py-0.5 font-bold uppercase tracking-wide text-emerald-700">
                     {post.category}
                   </span>
-                  {post.readTime && <span className="text-stone-900/40">{post.readTime}</span>}
+                  {post.readTime && <span className="text-stone-900/65">{post.readTime}</span>}
                 </div>
-                <h3 className="mt-3 font-display text-xl font-bold leading-snug text-stone-900 group-hover:text-amber-600">
+                <h3 className="mt-3 font-display text-xl font-bold leading-snug text-stone-900 group-hover:text-seine-amber">
                   <Link href={`/blog/${post.slug}`}>{post.title}</Link>
                 </h3>
                 {post.excerpt && (
@@ -66,7 +66,7 @@ export default async function BlogSection() {
                 <div className="mt-auto pt-6">
                   <Link
                     href={`/blog/${post.slug}`}
-                    className="inline-flex items-center gap-1.5 text-sm font-semibold text-emerald-700 transition group-hover:text-amber-600 group-hover:gap-2"
+                    className="inline-flex items-center gap-1.5 text-sm font-semibold text-emerald-700 transition group-hover:text-seine-amber group-hover:gap-2"
                   >
                     <span>{s.readArticleText}</span>
                     <span aria-hidden="true">→</span>
@@ -80,7 +80,7 @@ export default async function BlogSection() {
         <div className="mt-10 text-center md:hidden">
           <Link
             href="/blog"
-            className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-600 px-6 py-3 text-sm font-bold text-white shadow-md shadow-amber-500/20 transition hover:scale-[1.02]"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-seine-amber px-6 py-3 text-sm font-bold text-white transition hover:brightness-110"
           >
             <span>{s.viewAllText}</span>
             <span aria-hidden="true">→</span>

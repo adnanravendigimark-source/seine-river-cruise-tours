@@ -1,7 +1,7 @@
 import Link from "next/link";
 import SafeImage from "./SafeImage";
-import StarRating from "./StarRating";
-import { getTours } from "@/lib/data";
+import ProviderRating from "./ProviderRating";
+import { getTours, hasPrice } from "@/lib/data";
 import { getRelatedPosts } from "@/lib/posts";
 import { getHomepageContent } from "@/lib/homepage";
 
@@ -26,7 +26,7 @@ export default async function BlogSidebar({
         <div className="overflow-hidden rounded-2xl border border-stone-900/10 bg-white shadow-sm">
           <div className="relative aspect-[4/3]">
             <SafeImage src={tour.image} alt={tour.imageAlt} fill sizes="320px" className="object-cover" />
-            <span className="absolute left-3 top-3 rounded-full bg-gold-500 px-2.5 py-1 text-[10px] font-semibold text-white shadow-sm">
+            <span className="absolute left-3 top-3 rounded-full bg-gold-400 px-2.5 py-1 text-xs font-semibold text-stone-900 shadow-sm">
               {s.sidebarRecommendedBadge}
             </span>
           </div>
@@ -34,21 +34,29 @@ export default async function BlogSidebar({
             <p className="font-display text-sm font-semibold leading-snug text-stone-900">
               {tour.title}
             </p>
-            <div className="mt-1.5 flex items-center gap-1.5 text-xs text-stone-900/60">
-              <StarRating rating={tour.rating} showValue reviewCount={tour.reviews} size="xs" />
-            </div>
+            <p className="mt-1.5 text-xs text-stone-900/70">
+              <ProviderRating rating={tour.rating} reviews={tour.reviews} source={tour.ratingSource} />
+            </p>
+            {tour.cancellation && <p className="mt-1 text-xs font-medium text-seine-amber">{tour.cancellation}</p>}
             <div className="mt-4 flex items-center justify-between border-t border-stone-900/10 pt-4">
               <div>
-                <p className="text-[10px] uppercase tracking-wide text-stone-900/40">from</p>
-                <p className="font-display text-lg font-bold text-stone-900">€{tour.price}</p>
+                {hasPrice(tour) ? (
+                  <>
+                    <p className="text-xs text-stone-900/65">from</p>
+                    <p className="font-display text-lg font-bold text-stone-900">€{tour.price}</p>
+                  </>
+                ) : (
+                  <p className="text-xs text-stone-900/70">See prices on GetYourGuide</p>
+                )}
               </div>
               <a
                 href={tour.href}
                 target="_blank"
                 rel="noopener nofollow sponsored"
-                className="rounded-full bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-600 px-4 py-2 text-xs font-bold text-white shadow-md shadow-amber-500/20 transition hover:scale-[1.02]"
+                data-placement="blog_sidebar"
+                className="inline-flex min-h-[40px] items-center rounded-full bg-seine-amber px-4 text-xs font-bold text-white transition-[filter] hover:brightness-110"
               >
-                {header.bookNowText}
+                {tour.ctaLabel || header.bookNowText}
               </a>
             </div>
           </div>
@@ -56,7 +64,7 @@ export default async function BlogSidebar({
       )}
 
       <div>
-        <p className="text-xs font-semibold uppercase tracking-wider text-stone-900/40">
+        <p className="text-xs font-semibold uppercase tracking-wider text-stone-900/65">
           {s.sidebarRelatedHeading}
         </p>
         <div className="mt-4 space-y-4">
@@ -66,7 +74,7 @@ export default async function BlogSidebar({
                 <SafeImage src={post.image} alt={post.imageAlt} fill sizes="80px" className="object-cover" />
               </div>
               <div>
-                <p className="text-[10px] font-semibold uppercase tracking-wide text-seine-teal">
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-seine-amber">
                   {post.category}
                 </p>
                 <p className="mt-0.5 line-clamp-2 text-sm font-medium text-stone-900 group-hover:text-seine-amber">

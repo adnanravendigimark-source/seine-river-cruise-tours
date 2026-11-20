@@ -1,5 +1,6 @@
 import { sql } from "./db";
 import postsSeed from "@/data/posts.json";
+import { toIsoDate } from "./checkedDate";
 
 // A post's body is a simple list of typed blocks rather than raw HTML/
 // Markdown — easy for a non-technical content writer to edit in the admin
@@ -73,6 +74,10 @@ export interface Post {
   ogTitle: string;
   ogDescription: string;
   ogImage: string;
+  // When an editor last verified this post's facts (prices, hours, rules)
+  // against official sources — set by hand, never automatically, and shown
+  // on the page as "Facts checked …". YYYY-MM-DD or empty.
+  lastChecked?: string;
 }
 
 const DEFAULT_CTA_HEADING = "Ready to book?";
@@ -144,6 +149,7 @@ function rowToPost(row: any): Post {
     recommendedTourAfterBlock:
       row.recommended_tour_after_block === null ? undefined : Number(row.recommended_tour_after_block),
     content: parseContent(row.content),
+    lastChecked: toIsoDate(row.last_checked),
     ctaHeading: row.cta_heading || DEFAULT_CTA_HEADING,
     ctaBody: row.cta_body || DEFAULT_CTA_BODY,
     ctaButtonText: row.cta_button_text || DEFAULT_CTA_BUTTON_TEXT,
@@ -235,14 +241,14 @@ export async function savePosts(posts: Post[]): Promise<void> {
         quick_answer, read_time, date, updated_at, image, image_alt,
         recommended_tour_id, recommended_tour_after_block, content, sort_order,
         cta_heading, cta_body, cta_button_text, cta_button_href, focus_keyword,
-        no_index, no_follow, canonical_url, og_title, og_description, og_image
+        no_index, no_follow, canonical_url, og_title, og_description, og_image, last_checked
       ) VALUES (
         ${p.slug}, ${p.title}, ${p.metaTitle}, ${p.metaDescription}, ${p.category},
         ${p.excerpt}, ${p.quickAnswer}, ${p.readTime}, ${p.date}, ${p.updatedAt || p.date}, ${p.image}, ${p.imageAlt},
         ${p.recommendedTourId || ""}, ${p.recommendedTourAfterBlock ?? null},
         ${JSON.stringify(p.content || "")}::jsonb, ${i},
         ${p.ctaHeading || ""}, ${p.ctaBody || ""}, ${p.ctaButtonText || ""}, ${p.ctaButtonHref || ""}, ${p.focusKeyword || ""},
-        ${!!p.noIndex}, ${!!p.noFollow}, ${p.canonicalUrl || ""}, ${p.ogTitle || ""}, ${p.ogDescription || ""}, ${p.ogImage || ""}
+        ${!!p.noIndex}, ${!!p.noFollow}, ${p.canonicalUrl || ""}, ${p.ogTitle || ""}, ${p.ogDescription || ""}, ${p.ogImage || ""}, ${toIsoDate(p.lastChecked) ?? null}
       )
       ON CONFLICT (slug) DO UPDATE SET
         title = EXCLUDED.title,
@@ -270,7 +276,8 @@ export async function savePosts(posts: Post[]): Promise<void> {
         canonical_url = EXCLUDED.canonical_url,
         og_title = EXCLUDED.og_title,
         og_description = EXCLUDED.og_description,
-        og_image = EXCLUDED.og_image
+        og_image = EXCLUDED.og_image,
+        last_checked = EXCLUDED.last_checked
     `;
   }
 

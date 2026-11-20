@@ -43,7 +43,7 @@ export default async function Footer() {
             ))}
             <div>
               <p className="font-semibold text-white">{footer.addressHeading}</p>
-              <p className="mt-3 whitespace-pre-line text-white/50">
+              <p className="mt-3 whitespace-pre-line text-white/70">
                 {footer.addressLine1}
                 {footer.addressLine2 ? `\n${footer.addressLine2}` : ""}
               </p>
@@ -51,7 +51,7 @@ export default async function Footer() {
           </div>
         </div>
 
-        <p className="mt-6 text-xs text-white/40">
+        <p className="mt-6 text-xs text-white/70">
           © {new Date().getFullYear()} {footer.copyrightText}
         </p>
       </div>

@@ -230,6 +230,60 @@ export default function TourForm({
         </div>
       </div>
 
+      <div className="grid gap-5 sm:grid-cols-3">
+        <div>
+          <label className={labelClass}>Rating source</label>
+          <input
+            value={tour.ratingSource ?? "GetYourGuide"}
+            onChange={(e) => update("ratingSource", e.target.value)}
+            placeholder="GetYourGuide"
+            className={inputClass}
+          />
+          <p className="mt-1 text-xs text-stone-500">Shown as "4.7★ · 4,850 reviews on …"</p>
+        </div>
+        <div>
+          <label className={labelClass}>Rating, reviews &amp; duration last checked</label>
+          <input
+            type="date"
+            value={tour.lastChecked || ""}
+            onChange={(e) => update("lastChecked", e.target.value)}
+            className={inputClass}
+          />
+        </div>
+        <div>
+          <label className={labelClass}>Price last checked</label>
+          <input
+            type="date"
+            value={tour.priceChecked || ""}
+            onChange={(e) => update("priceChecked", e.target.value)}
+            className={inputClass}
+          />
+          <p className="mt-1 text-xs text-stone-500">Leave empty until the € price is verified.</p>
+        </div>
+      </div>
+
+      <div>
+        <label className={labelClass}>Booking button text</label>
+        <input
+          value={tour.ctaLabel || ""}
+          onChange={(e) => update("ctaLabel", e.target.value)}
+          placeholder="e.g. Check dates — blank uses the site-wide “Book Now”"
+          maxLength={40}
+          className={inputClass}
+        />
+      </div>
+
+      <div>
+        <label className={labelClass}>Cancellation terms (as listed on the booking site)</label>
+        <input
+          value={tour.cancellation || ""}
+          onChange={(e) => update("cancellation", e.target.value)}
+          placeholder="e.g. Free cancellation up to 24 hours before — blank hides it"
+          maxLength={90}
+          className={inputClass}
+        />
+      </div>
+
       <ImageUploadField label="Image" value={tour.image} onChange={(url) => update("image", url)} aspectRatio={4 / 3} />
 
       <div>

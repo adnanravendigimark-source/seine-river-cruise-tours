@@ -21,7 +21,7 @@ export default async function RelatedPosts({ slug }: { slug: string }) {
               <SafeImage src={post.image} alt={post.imageAlt} fill sizes="100px" className="object-cover" />
             </div>
             <div className="flex flex-col justify-center">
-              <span className="text-[11px] font-semibold uppercase tracking-wide text-seine-teal">
+              <span className="text-[11px] font-semibold uppercase tracking-wide text-seine-amber">
                 {post.category}
               </span>
               <p className="mt-0.5 text-sm font-semibold text-stone-900 group-hover:text-seine-amber">

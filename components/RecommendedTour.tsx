@@ -1,6 +1,6 @@
 import TourPromoCard from "./TourPromoCard";
 import { getTours } from "@/lib/data";
-import { getHomepageContent } from "@/lib/homepage";
+import { getHomepageContent, affiliateNoteText } from "@/lib/homepage";
 
 // Inline tour promo dropped mid-article — this is the highest-converting
 // spot in a blog post, since the reader is already engaged with the exact
@@ -17,6 +17,7 @@ export default async function RecommendedTour({ tourId }: { tourId: string }) {
       tour={tour}
       recommendedLabel={sections.blogPage.promoRecommendedText}
       bookNowText={header.bookNowText}
+      affiliateNote={affiliateNoteText(header)}
     />
   );
 }

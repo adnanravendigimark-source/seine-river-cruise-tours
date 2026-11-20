@@ -5,7 +5,7 @@ import Breadcrumbs from "@/components/Breadcrumbs";
 import { MailIcon } from "@/components/icons";
 import { getContactPage } from "@/lib/contact";
 import { getIconComponent } from "@/lib/iconMap";
-import { resolveRobots, resolveCanonical, resolveOg } from "@/lib/seo";
+import { resolveRobots, resolveCanonical, resolveOg, pageTitle } from "@/lib/seo";
 
 
 // Every field below (title, description, canonical, indexing, follow, OG)
@@ -18,7 +18,7 @@ export async function generateMetadata(): Promise<Metadata> {
     { title: contact.metaTitle, description: contact.metaDescription }
   );
   return {
-    title: contact.metaTitle,
+    title: pageTitle(contact.metaTitle),
     description: contact.metaDescription,
     alternates: { canonical: resolveCanonical("/contact", contact.canonicalUrl) },
     robots: resolveRobots(contact.noIndex, contact.noFollow),
@@ -35,7 +35,7 @@ export default async function ContactPage() {
       <Header />
       <main className="mx-auto max-w-3xl px-4 py-16 sm:px-6 sm:py-24">
         <div className="text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-seine-teal">
+          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-seine-amber">
             {contact.heroEyebrow}
           </p>
           <h1 className="mt-3 font-display text-3xl font-bold text-stone-900 sm:text-4xl">
@@ -49,7 +49,7 @@ export default async function ContactPage() {
 
         {/* Primary email card */}
         <div className="mt-12 flex flex-col items-center gap-4 rounded-2xl border border-stone-900/10 bg-white p-8 text-center shadow-sm">
-          <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-seine-teal/10 text-seine-teal">
+          <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-seine-teal/10 text-seine-amber">
             <MailIcon className="h-6 w-6" />
           </span>
           <div>
@@ -61,7 +61,7 @@ export default async function ContactPage() {
               {contact.email}
             </a>
           </div>
-          <p className="text-xs text-stone-900/50">{contact.emailNote}</p>
+          <p className="text-xs text-stone-900/65">{contact.emailNote}</p>
         </div>
 
         {/* What we can help with */}

@@ -339,6 +339,17 @@ async function addSeoColumns() {
 // falls back to the exact copy that used to be hardcoded whenever a column
 // is empty, so running this never changes anything visible until an admin
 // actually edits a field in the new /admin/homepage tabs.
+async function addFactCheckColumns() {
+  console.log("Ensuring fact-check columns exist on tours/homepage...");
+  await sql`ALTER TABLE tours ADD COLUMN IF NOT EXISTS rating_source TEXT NOT NULL DEFAULT 'GetYourGuide'`;
+  await sql`ALTER TABLE tours ADD COLUMN IF NOT EXISTS last_checked DATE`;
+  await sql`ALTER TABLE tours ADD COLUMN IF NOT EXISTS price_checked DATE`;
+  await sql`ALTER TABLE homepage ADD COLUMN IF NOT EXISTS rating_checked DATE`;
+  await sql`ALTER TABLE tours ADD COLUMN IF NOT EXISTS cta_label TEXT NOT NULL DEFAULT ''`;
+  await sql`ALTER TABLE posts ADD COLUMN IF NOT EXISTS last_checked DATE`;
+  await sql`ALTER TABLE tours ADD COLUMN IF NOT EXISTS cancellation TEXT NOT NULL DEFAULT ''`;
+}
+
 async function addHomepageCmsColumns() {
   console.log("Ensuring full homepage-CMS columns exist on homepage...");
   await sql`ALTER TABLE homepage ADD COLUMN IF NOT EXISTS hero_gallery JSONB NOT NULL DEFAULT '[]'`;
@@ -700,6 +711,7 @@ async function main() {
   await addHomepageCmsColumns();
   await addBlogCmsColumns();
   await addMediaLibraryTable();
+  await addFactCheckColumns();
   await seedTours();
   await seedPosts();
   await seedHomepage();

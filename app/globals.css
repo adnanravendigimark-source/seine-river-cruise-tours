@@ -80,7 +80,9 @@ body {
   list-style: decimal;
 }
 .rich-content a {
-  color: rgb(var(--color-seine-teal));
+  /* --color-seine-amber holds the admin's primary (plum): readable on white.
+     --color-seine-teal is the amber accent, too light for link text. */
+  color: rgb(var(--color-seine-amber));
   text-decoration: underline;
   text-underline-offset: 2px;
 }

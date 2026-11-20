@@ -11,7 +11,7 @@ export default async function PracticalInfo() {
       <div className="mx-auto grid max-w-6xl gap-10 px-4 sm:px-6 lg:grid-cols-3">
         <div>
           <h3 className="font-display text-lg font-semibold text-stone-900">{s.hoursHeading}</h3>
-          <table className="mt-4 w-full text-sm">
+          {s.hours.length > 0 && <table className="mt-4 w-full text-sm">
             <tbody>
               {s.hours.map((row, i) => (
                 <tr key={row.range + i} className="border-b border-stone-900/5">
@@ -20,13 +20,13 @@ export default async function PracticalInfo() {
                 </tr>
               ))}
             </tbody>
-          </table>
-          <p className="mt-2 text-xs text-stone-900/50">{s.hoursNote}</p>
+          </table>}
+          <p className="mt-2 text-sm text-stone-900/70">{s.hoursNote}</p>
         </div>
         <div>
           <h3 className="font-display text-lg font-semibold text-stone-900">{s.addressHeading}</h3>
           <p className="mt-4 whitespace-pre-line text-sm text-stone-900/70">{s.address}</p>
-          <p className="mt-3 text-xs text-stone-900/50">{s.metro}</p>
+          <p className="mt-3 text-xs text-stone-900/65">{s.metro}</p>
         </div>
         <div>
           <h3 className="font-display text-lg font-semibold text-stone-900">{s.bestTimeHeading}</h3>

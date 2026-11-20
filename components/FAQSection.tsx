@@ -28,7 +28,7 @@ export default async function FAQSection() {
           <details key={f.question} className="group p-6 open:bg-stone-50/50">
             <summary className="flex cursor-pointer list-none items-center justify-between font-medium text-stone-900">
               {f.question}
-              <span className="ml-4 text-stone-900/40 transition group-open:rotate-45">+</span>
+              <span className="ml-4 text-stone-900/65 transition group-open:rotate-45">+</span>
             </summary>
             <div
               className="rich-content mt-3 text-sm leading-relaxed text-stone-900/70"

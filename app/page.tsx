@@ -1,13 +1,15 @@
+import { SITE_URL } from "@/lib/site";
 import type { Metadata } from "next";
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import RiverHighlights from "@/components/RiverHighlights";
 import FeaturedTour from "@/components/FeaturedTour";
-import TourGrid from "@/components/TourGrid";
+import TicketChooser from "@/components/TicketChooser";
+import PlanYourVisit from "@/components/PlanYourVisit";
+import FinalCta from "@/components/FinalCta";
 import WhatYouSee from "@/components/WhatYouSee";
 import IlluminationsCruise from "@/components/IlluminationsCruise";
 import PracticalInfo from "@/components/PracticalInfo";
-import PriceComparison from "@/components/PriceComparison";
 import FAQSection from "@/components/FAQSection";
 import BlogSection from "@/components/BlogSection";
 import Footer from "@/components/Footer";
@@ -42,63 +44,51 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function HomePage() {
-  // Product structured data for the featured cruises — makes them eligible
-  // for star-rating rich results in search.
+  // Structured data for this page. Deliberately no Product/AggregateRating:
+  // the cruises are sold by GetYourGuide, not this site, and Google's review
+  // snippet rules don't allow marking up ratings collected elsewhere. The
+  // river is what the page is about; the cruises are listed by name and link.
   const tours = await getTours();
-  const productJsonLd = tours
-    .filter((t) => t.featured)
-    .map((t) => ({
-      "@context": "https://schema.org",
-      "@type": "Product",
-      name: t.title,
-      // t.description is admin-entered rich text (bold/links/lists) —
-      // structured data needs plain text, so tags are stripped here; the
-      // tour card itself renders the real formatted HTML.
-      description: t.description.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim(),
-      // Google Search Console's Merchant listings check flags Product
-      // structured data missing an "image" as a critical error — t.image
-      // is already an absolute URL (Unsplash/Blob), so no SITE_URL prefix
-      // needed here.
-      image: t.image,
-      aggregateRating: {
-        "@type": "AggregateRating",
-        ratingValue: t.rating,
-        reviewCount: t.reviews,
-      },
-      offers: {
-        "@type": "Offer",
-        priceCurrency: "EUR",
-        price: t.price,
-        availability: "https://schema.org/InStock",
-        url: t.href,
-      },
-    }));
+  const pageJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "@id": `${SITE_URL}/#webpage`,
+    url: SITE_URL,
+    about: {
+      "@type": "TouristAttraction",
+      name: "Seine River cruises in Paris",
+      containedInPlace: { "@type": "City", name: "Paris", sameAs: "https://en.wikipedia.org/wiki/Paris" },
+      sameAs: ["https://en.wikipedia.org/wiki/Seine"],
+    },
+    mainEntity: {
+      "@type": "ItemList",
+      itemListElement: tours.map((t, i) => ({ "@type": "ListItem", position: i + 1, name: t.title, url: t.href })),
+    },
+  };
 
   return (
     <>
-      <Header />
+      <Header overlay />
       <main>
         <Hero />
-        <RiverHighlights />
         <FeaturedTour />
-        <TourGrid />
+        <TicketChooser />
         <WhatYouSee />
         <IlluminationsCruise />
+        <RiverHighlights />
+        <PlanYourVisit />
         <PracticalInfo />
-        <PriceComparison />
         <BlogSection />
         <FAQSection />
+        <FinalCta />
         {/* Spacer so the mobile sticky booking bar never covers the footer */}
         <div className="h-20 sm:hidden" aria-hidden="true" />
       </main>
       <Footer />
-      {productJsonLd.map((data, i) => (
-        <script
-          key={i}
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
-        />
-      ))}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(pageJsonLd).replace(/</g, "\\u003c") }}
+      />
     </>
   );
 }
